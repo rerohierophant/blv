@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朋友圈</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/pyq_style.css' %}">
+    <script type='text/javascript' src="{% static 'js/jquery.min.js' %}"></script>
+
+</head>
+<body>
+    <div class="post">
+        <div class="post-header">
+            <img class="avatar" src="https://cdn.discordapp.com/attachments/1191633627629494366/1201922982793199616/eee4de45ae0108db5ca1b9cd82a9bfea_1.jpg?ex=65cb9501&is=65b92001&hm=cba1e478bfd15d455959aafe080b97f8d54c1b4780312693a9b19e96ddf00d9d&" alt="头像">
+            <div class="post-user-details">
+                <span class="username">雨下一整晚</span>
+                <span class="post-time">昨天 15:30</span>
+                <span class="post-location">法国 巴黎</span>
+            </div>
+        </div>
+        <div class="post-body">
+            <div class="post-content">太美丽了巴黎（</div>
+            <div class="post-image">
+                <img src="https://cdn.discordapp.com/attachments/1191633627629494366/1201922278737317938/wtl02_a_couple_walking_in_the_Paris_street_photo-like_realistic_f13da273-3286-440e-8655-df4261dc3bad.png?ex=65cb9459&is=65b91f59&hm=9a4e33d0fcfa6c12aa6f54c989e59540f0e4473413c74ae6dc899a78909a08f7&" alt="图片" style="width: 200px;">
+            </div>
+        </div>
+        <div class="post-footer">
+            <div class="divider"></div>
+            <div class="comments">
+                <span>DodeRex：好好好</span>
+                <span>克卜勒：玩得开心捏</span>
+                <!-- 更多评论 -->
+            </div>
+        </div>
+    </div>
+    <h1 id="text-to-read">结果</h1>
+    <p id="desc" style="margin: 0 0 0 16px;"></p>
+    <p id="response" style="margin: 0 0 0 16px;"></p>
+    <button id="read-btn">朗读结果</button>
+<script>
+    // 图片上传
+    var getAllImages = document.getElementsByTagName('img');
+
+    // 文字上传（时间，地点，评论，文案）
+    var pyq_time = $(".post-time").text();
+    var pyq_location = $(".post-location").text();
+    var pyq_comments = []
+    var pyq_content = $(".post-content").text();
+    $(".comments span").each(function() {
+        pyq_comments.push($(this).text());
+    });
+    var description = `发帖时间为${pyq_time}，发帖地点为${pyq_location}，发帖得到评论为${pyq_comments}，发帖正文为${pyq_content}`;
+
+    // loop through it
+    for (var i = 0; i < getAllImages.length; i++) {
+        (function(x) {  // closure starts here
+            getAllImages[x].addEventListener('click', function() {
+                console.log("请求已发送")
+                var img_src = this.getAttribute('src')
+                // 发送 AJAX 请求到后端
+                // 使用 jQuery 发送 AJAX 请求到后端
+                $.ajax({
+                    url: "/get_result/",
+                    type: "POST",
+                    data: { src: img_src,text: description },
+                    success: function(response) {
+                        console.log(response); // 打印后端返回的响应
+                        $("#response").html(response.data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error); // 打印错误信息
+                    }
+                });
+            })
+        }(i))  // pass the value of i
+    }
+</script>
+
+<script>
+    document.getElementById('read-btn').addEventListener('click', function() {
+    var text = document.getElementById('response').innerText;
+    var speech = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(speech);
+});
+</script>
+</body>
+</html>

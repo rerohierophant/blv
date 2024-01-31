@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Long Press Event Example</title>
+</head>
+<body>
+
+<!-- 需要监听长按的元素 -->
+<div id="targetElement" style="width: 100px; height: 100px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+    <h1>长按我</h1>
+</div>
+
+<script>
+    var target = document.getElementById('targetElement');
+    var timer;
+    var longPressTime = 1000; // 长按的阈值，这里设置为 1000 毫秒（1秒）
+
+    // 对于触摸屏设备，监听 touchstart 和 touchend 事件
+    target.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // 阻止默认行为，如点击
+        timer = setTimeout(function() {
+            console.log('长按事件触发');
+            target.style.backgroundColor = '#ff4500'; // 改变背景色
+            // 在这里执行长按后的逻辑
+        }, longPressTime);
+    });
+
+    target.addEventListener('touchend', function() {
+        clearTimeout(timer);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f2f5;
+    padding: 0;
+}
+
+.post {
+    background-color: white;
+    margin: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.post-user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.post-time {
+    font-size: 0.8em;
+    color: #888;
+}
+
+.post-body {
+    padding: 0 15px;
+}
+
+.post-content {
+    margin-bottom: 15px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.post-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    
+}
+
+.post-footer {
+    padding: 10px 15px;
+}
+
+.divider {
+    height: 1px;
+    background-color: #eaeaea;
+    margin-bottom: 10px;
+}
+
+.comments span {
+    display: block;
+    margin-top: 5px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.post-location {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px; /* 为发布地点和时间之间增加一些间距 */
+}
