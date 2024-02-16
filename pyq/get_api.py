@@ -3,9 +3,8 @@ import os
 
 
 def result(order, img_url, desc):
-    # desc = "What’s in this image?"
     client = OpenAI(
-        api_key="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",
+        api_key="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",
     )
 
     chat_completion = client.chat.completions.create(

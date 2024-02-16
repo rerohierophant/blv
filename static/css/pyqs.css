@@ -1,7 +1,15 @@
 body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #f0f2f5;
-    padding: 0;
+    max-width: 960px; /* 可以根据需要调整 */
+    width: 50%; /* 占屏幕的三分之二 */
+    margin: auto;
+}
+
+@media screen and (max-width: 600px) {
+    .body {
+        width: 100%; /* 在小屏幕上占满整个屏幕 */
+    }
 }
 
 .post {
@@ -45,37 +53,22 @@ body {
 }
 
 .post-content {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     line-height: 1.5;
     color: #333;
 }
 
+.post-image {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+}
+
 .post-image img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    
+    width: 150px;
+    height: 150px;
+    margin-right: 8px;
+    object-fit: cover; /* 保持长宽比，完全覆盖容器 */
 }
 
-.post-footer {
-    padding: 10px 15px;
-}
-
-.divider {
-    height: 1px;
-    background-color: #eaeaea;
-    margin-bottom: 10px;
-}
-
-.comments span {
-    display: block;
-    margin-top: 5px;
-    color: #555;
-    font-size: 0.9em;
-}
-
-.post-location {
-    font-size: 0.8em;
-    color: #888;
-    margin-top: 5px; /* 为发布地点和时间之间增加一些间距 */
-}

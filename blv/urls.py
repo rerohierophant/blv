@@ -18,6 +18,8 @@ from django.urls import path
 from pyq import views
 
 urlpatterns = [
-    path('pyq_index/', views.pyq_init),
-    path('get_result/', views.get_result),
+    path('', views.pyqs_init),
+    path('get_result_all/', views.get_result_all),
+    path('get_result_img/', views.get_result_img),
+    path('pyqs/<int:pyq_id>/', views.pyq_detail, name='pyq_index'),
 ]

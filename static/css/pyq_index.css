@@ -1,0 +1,149 @@
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f2f5;
+    padding: 0;
+    max-width: 960px; /* 可以根据需要调整 */
+    width: 50%; /* 占屏幕的三分之二 */
+    margin: auto;
+}
+
+@media screen and (max-width: 600px) {
+    .body {
+        width: 100%; /* 在小屏幕上占满整个屏幕 */
+    }
+}
+
+.post {
+    background-color: white;
+    margin: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.post-user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.post-time {
+    font-size: 0.8em;
+    color: #888;
+}
+
+.post-body {
+    padding: 0 15px;
+}
+
+.post-content {
+    margin-bottom: 15px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.post-image {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.post-image img {
+    width: 200px;
+    height: 200px;
+    margin-right: 8px;
+    object-fit: cover; /* 保持长宽比，完全覆盖容器 */
+}
+
+.post-footer {
+    padding: 10px 15px;
+    margin-left: auto;
+}
+
+.divider {
+    height: 1px;
+    background-color: #eaeaea;
+    margin-bottom: 10px;
+}
+
+.comments span {
+    display: block;
+    margin-top: 5px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.post-location {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px; /* 为发布地点和时间之间增加一些间距 */
+}
+
+.post-footer svg{
+    width: 20px;
+    height: 20px;
+}
+
+.like-btn, .comment-btn, .AI-btn {
+    background-color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.button-bar{
+    text-align: right;
+}
+
+.user-behavior{
+    background-color: #f5f5f5;
+    padding: 0px 10px;
+}
+
+.likes{
+    display: flex;
+    align-items: center;
+}
+
+.likes span{
+    margin-left: 8px;
+}
+
+.hover-box {
+    position: absolute;
+    bottom: 35%;
+    right: 20px;
+    width: 50px; /* 调整悬浮框的大小以适应圆形图标 */
+    height: 50px;
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.2);
+    border-radius: 50%; /* 使悬浮框本身也成为圆形 */
+}
+
+.hover-box svg {
+    width: 30px; /* 圆形图标的直径 */
+    height: 30px; /* 圆形图标的直径 */
+    border-radius: 50%; /* 使<div>成为圆形 */
+}

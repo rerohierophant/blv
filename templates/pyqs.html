@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>朋友圈列表</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/pyqs.css' %}">
+    <script type='text/javascript' src="{% static 'js/jquery.min.js' %}"></script>
+</head>
+<body>
+    {% for pyq in pyqs %}
+    <div class="post" onclick="location.href='{% url 'pyq_index' pyq.pyq_id %}';">
+        <div class="post-header">
+            <img class="avatar" src="{{ pyq.poster_avatar }}" alt="头像">
+            <div class="post-user-details">
+                <span class="username">{{ pyq.poster }}</span>
+                <span class="post-time">{{ pyq.time }}</span>
+            </div>
+        </div>
+
+        <div class="post-body">
+            <div class="post-content">{{ pyq.content }}</div>
+            <div class="post-image">
+                {% for img in pyq.img_set.all %}
+                <img src="{{ img.img_url }}" alt="内容图片" >
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</body>
+</html>
