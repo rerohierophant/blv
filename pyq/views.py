@@ -31,7 +31,7 @@ def get_result_all(request):
 
     desc = data.get('desc')
 
-    res = result(order, img_url, desc)
+    res = result(order, img_url, desc, p)
     return JsonResponse({'data': res})
 
 
