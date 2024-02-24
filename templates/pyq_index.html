@@ -12,6 +12,11 @@
 
 </head>
 <body>
+    <div class="header">
+        <button id="return-pyqs">
+            <svg t="1708333582117" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4370" width="200" height="200"><path d="M631.04 161.941333a42.666667 42.666667 0 0 1 63.061333 57.386667l-2.474666 2.730667-289.962667 292.245333 289.706667 287.402667a42.666667 42.666667 0 0 1 2.730666 57.6l-2.474666 2.752a42.666667 42.666667 0 0 1-57.6 2.709333l-2.752-2.474667-320-317.44a42.666667 42.666667 0 0 1-2.709334-57.6l2.474667-2.752 320-322.56z" fill="#111111" p-id="4371"></path></svg>        </button>
+        <span>朋友圈{{ pyq.pyq_id }}</span>
+    </div>
     <div class="post">
         <div class="post-header">
             <img class="avatar" src="{{ pyq.poster_avatar }}" alt="头像">
@@ -31,8 +36,6 @@
         </div>
         <div class="post-footer">
             <div class="button-bar">
-                <button class="AI-btn">
-                </button>
                 <button class="like-btn" id="toLike">
                     <svg t="1707124504128" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6761" width="200" height="200"><path d="M621.674667 408.021333c16.618667-74.24 28.224-127.936 34.837333-161.194666C673.152 163.093333 629.941333 85.333333 544.298667 85.333333c-77.226667 0-116.010667 38.378667-138.88 115.093334l-0.586667 2.24c-13.728 62.058667-34.72 110.165333-62.506667 144.586666a158.261333 158.261333 0 0 1-119.733333 58.965334l-21.909333 0.469333C148.437333 407.808 106.666667 450.816 106.666667 503.498667V821.333333c0 64.8 52.106667 117.333333 116.394666 117.333334h412.522667c84.736 0 160.373333-53.568 189.12-133.92l85.696-239.584c21.802667-60.96-9.536-128.202667-70.005333-150.186667a115.552 115.552 0 0 0-39.488-6.954667H621.674667zM544.256 149.333333c39.253333 0 59.498667 36.48 49.888 84.928-7.573333 38.144-21.984 104.426667-43.221333 198.666667-4.512 20.021333 10.56 39.093333 30.912 39.093333h218.666666c6.101333 0 12.16 1.066667 17.909334 3.168 27.445333 9.984 41.674667 40.554667 31.776 68.266667l-85.568 239.573333C744.981333 838.026667 693.301333 874.666667 635.402667 874.666667H223.498667C194.314667 874.666667 170.666667 850.784 170.666667 821.333333V503.498667c0-17.866667 14.144-32.448 31.829333-32.821334l21.866667-0.469333a221.12 221.12 0 0 0 167.381333-82.56c34.346667-42.602667 59.146667-99.306667 74.869333-169.877333C482.101333 166.336 499.552 149.333333 544.266667 149.333333z" fill="#000000" p-id="6762"></path></svg>
                 </button>
@@ -66,33 +69,102 @@
     <button id="read-btn" style="margin: 0 0 0 16px;">朗读结果</button>
 
     <script>
+        // 检查浏览器是否支持SpeechRecognition API
+        var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+        if (typeof SpeechRecognition === "undefined") {
+            alert("浏览器不支持");
+        }
+
+        var recognition_inquery = new SpeechRecognition();
+        recognition_inquery.continuous = true; // 让识别服务不断运行
+        recognition_inquery.lang = "zh-CN"; // 设置语言
+        recognition_inquery.interimResults = false; // 是否返回临时结果
+        var lastResult
+
+        recognition_inquery.onresult = function (event) {
+            lastResult = event.results[event.resultIndex][0].transcript;
+            console.log("识别结果: ", lastResult);
+
+            $.ajax({
+                url: '/get_free_chat/',
+                type: 'POST',
+                data: JSON.stringify({desc: description, id: id, voice_input: lastResult }),
+                contentType: 'application/json',
+                headers: {'X-CSRFToken': getCookie('csrftoken')}, // 获取CSRF token
+                success: function (response) {
+                    console.log(response.data);
+                    $("#response").html(response.data);
+                },
+                error: function (error) {
+                    console.error(error);
+                }
+            });
+        };
+
+        recognition_inquery.onend = function () {
+            console.log("识别服务断开");
+        };
+
         var id = {{ pyq.pyq_id }};
         var comment = [];
         {% for comment in pyq.comment_set.all %}
-            comment.push("{{ comment.commenter }}"+":"+"{{ comment.comment_content }}");
+            comment.push("{{ comment.commenter }}" + ":" + "{{ comment.comment_content }}");
         {% endfor %}
         var commentString = comment.join(";");
         var description = "发帖时间为{{ pyq.time }}，发帖地点为{{ pyq.location}}，发帖正文为{{ pyq.content }}，得到的评论为" + commentString;
 
-        {#console.log(description)#}
-        $(document).ready(function(){
-            $('.hover-box').click(function(){
+
+        const hoverBox = document.querySelector('.hover-box');
+        let timer = null;
+        var isListening = false;
+        let longPressOccurred = false; // 标志变量
+
+        hoverBox.addEventListener('mousedown', function() {
+            // 重置长按触发状态
+            longPressOccurred = false;
+            timer = setTimeout(function() {
+                recognition_inquery.start();
+                isListening = true;
+                longPressOccurred = true;
+                console.log("识别开始");
+            }, 500);
+        })
+
+        document.addEventListener('mouseup', function() {
+            clearTimeout(timer);
+            if (isListening) {
+                recognition_inquery.stop();
+                isListening = false;
+                console.log("识别结束");
+
+            }
+        });
+
+        // 监听click事件
+        hoverBox.addEventListener('click', function (e) {
+            // 如果长按已被触发，则阻止单击事件的执行
+            if (longPressOccurred) {
+                e.preventDefault();
+                longPressOccurred = false; // 重置长按标志
+            } else {
+                // 执行单击事件的操作
+                console.log('单击');
                 $.ajax({
                     url: '/get_result_all/',
                     type: 'POST',
-                    data: JSON.stringify({ desc: description, id: id }),
+                    data: JSON.stringify({desc: description, id: id}),
                     contentType: 'application/json',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
-                    success: function(response) {
+                    headers: {'X-CSRFToken': getCookie('csrftoken')}, // 获取CSRF token
+                    success: function (response) {
                         console.log(response.data);
+                        $("#response").html(response.data);
                     },
-                    error: function(error) {
+                    error: function (error) {
                         console.error(error);
                     }
                 });
-            });
+            }
         });
-
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -106,6 +178,13 @@
                 }
             }
             return cookieValue;
+        }
+
+        // 定义朗读函数
+        function speakText(text) {
+            const synth = window.speechSynthesis;
+            const utterThis = new SpeechSynthesisUtterance(text);
+            synth.speak(utterThis);
         }
     </script>
 
@@ -141,12 +220,44 @@
     <script>
         //朗读结果
         document.getElementById('read-btn').addEventListener('click', function() {
-        var text = document.getElementById('response').innerText;
-        var speech = new SpeechSynthesisUtterance(text);
-        window.speechSynthesis.speak(speech);
-    });
+            var text = document.getElementById('response').innerText;
+            var speech = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(speech);
+        });
+    </script>
+
+    <script>
+        // 获取要监测的元素
+        const targetNode = document.getElementById('response');
+
+        // 创建一个观察者实例并传入回调函数
+        const observer = new MutationObserver(function(mutationsList, observer) {
+            for(let mutation of mutationsList) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                    const newText = targetNode.textContent || targetNode.innerText;
+                    // 调用朗读函数
+                    speakText(newText);
+                }
+            }
+        });
+
+        // 使用配置项开始观察目标节点
+        observer.observe(targetNode, { childList: true, subtree: true, characterData: true });
+
+        // 定义一个朗读文本的函数
+        function speakText(text) {
+            const synth = window.speechSynthesis;
+            const utterThis = new SpeechSynthesisUtterance(text);
+            synth.speak(utterThis);
+        }
     </script>
 
     <script type='text/javascript' src="{% static 'js/like_comment.js' %}"></script>
+
+    <script>
+        document.getElementById('return-pyqs').addEventListener('click', function() {
+            window.location.href = '/';
+        });
+    </script>
 </body>
 </html>
