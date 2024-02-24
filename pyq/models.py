@@ -85,7 +85,7 @@ class Comment(models.Model):
     comment_content = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'comment'
 
 
@@ -138,9 +138,10 @@ class Img(models.Model):
     img_id = models.AutoField(primary_key=True)
     pyq = models.ForeignKey('Pyq', models.DO_NOTHING, blank=True, null=True)
     img_url = models.CharField(max_length=2048, blank=True, null=True)
+    type = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'img'
 
 
@@ -153,5 +154,5 @@ class Pyq(models.Model):
     location = models.CharField(max_length=30, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'pyq'
