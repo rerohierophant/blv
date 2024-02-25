@@ -28,7 +28,7 @@
         </div>
         <div class="post-body">
             <div class="post-content">{{ pyq.content }}</div>
-            <div class="post-image">
+            <div class="post-image" id="post-img">
                 {% for img in pyq.img_set.all %}
                 <img src="{{ img.img_url }}" alt="图片" >
                 {% endfor %}
@@ -189,7 +189,9 @@
     </script>
 
     <script>
-        var getAllImages = document.getElementsByTagName('img');
+        // var getAllImages = document.getElementsByTagName('img');
+        postImg = document.getElementById('post-img')
+        let getAllImages = postImg.getElementsByTagName('img')
         // loop through it
         for (var i = 0; i < getAllImages.length; i++) {
             (function(x) {
@@ -201,7 +203,7 @@
                     $.ajax({
                         url: "/get_result_img/",
                         type: "POST",
-                        data: JSON.stringify({ src: img_src, desc: description }),
+                        data: JSON.stringify({ src: img_src, desc: description, id: id }),
                         contentType: 'application/json',
                         headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
                         success: function(response) {
