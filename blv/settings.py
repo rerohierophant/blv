@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+LOGIN_REDIRECT_URL = '/'  # 这里可以指定用户登录成功后重定向的页面，可以根据你的需求进行调整
+LOGIN_URL = '/login/'
 # Application definition
 
 INSTALLED_APPS = [
@@ -75,12 +76,22 @@ WSGI_APPLICATION = "blv.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": 'uist24',
+#         "USER": 'root',
+#         "PASSWORD": 'root',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306',
+#     }
+# }
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": 'uist24',
         "USER": 'root',
-        "PASSWORD": 'root',
+        "PASSWORD": '123456',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }

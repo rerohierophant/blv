@@ -1,0 +1,77 @@
+body {
+  margin: 0px;
+  padding: 0px;
+  width: 1180px;
+  height: 820px;
+}
+.setting-container {
+  padding: 32px 100px;
+  height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 10% 90%;
+}
+.title {
+  font-size: 48px;
+  font-weight: 700;
+}
+.content {
+  display: grid;
+  grid-template-rows: repeat(2, 50%);
+  grid-template-columns: repeat(2, 50%);
+  /* gap: 15px; */
+  height: auto
+
+}
+.subtitle {
+  font-size: 28px;
+}
+.sub-content {
+  box-sizing: content-box;
+  height: 100%;
+}
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+}
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 33.33%);
+}
+.subbox1, .subbox2, .subbox3, .subbox4 {
+  border: 1px solid gray;
+  /* padding: 16px 24px; */
+  font-size: 20px;
+  display: grid;
+  grid-template-rows: 15% 85%;
+}
+.subbox1 {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.subbox2 {
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+.subbox3 {
+  margin-right: 10px;
+  margin-top: 10px;
+}
+.subbox4 {
+  margin-left: 10px;
+  margin-top: 10px;
+}
+.item {
+  height: 100%;
+}
+.item:hover {
+  background-color: #f6f6f6;
+}
+
+.submit-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 8px 15px;
+  border: 1px solid gray;
+}

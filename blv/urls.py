@@ -18,6 +18,9 @@ from django.urls import path
 from pyq import views
 
 urlpatterns = [
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('setting/', views.setting_view, name='setting'),
     path('', views.pyqs_init),
     path('get_result_all/', views.get_result_all),
     path('get_result_img/', views.get_result_img),

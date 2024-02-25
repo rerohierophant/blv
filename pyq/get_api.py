@@ -28,7 +28,7 @@ key_ele_dict = {
 }
 
 
-def result(order, img_url, desc, p):
+def result(order, img_url, desc, p, settings):
     # client = OpenAI(
     #     api_key="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",
     # )
@@ -58,7 +58,7 @@ def result(order, img_url, desc, p):
     print(type)
     key_ele = getKeyEle(img_url, desc, caption, type)
     print(key_ele)
-    img_des = getImgDescription(img_url, desc, caption, type, key_ele)
+    img_des = getImgDescription(img_url, desc, caption, type, key_ele, settings)
     return img_des
 
 def getImageType(img_url, desc, caption):
@@ -125,7 +125,10 @@ Note: You only need to give each key element and a brief description of the corr
     return chat_completion.choices[0].message.content
 
 
-def getImgDescription(img_url, desc, caption, type, key_ele):
+def getImgDescription(img_url, desc, caption, type, key_ele, settings):
+
+
+
     client = OpenAI(
         api_key="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",
     )
@@ -135,10 +138,40 @@ Instructions:
 (1)   You need to describe in detail each key element of the image below: 
 {key_ele}
 (2)   You should briefly describe elements not mentioned in Instruction(1) 
-(3)   If there is a subject, first describe the subject, and then use the subject as a reference to describe the surrounding objects.If there is no subject, describe it directly in order (clockwise or from left to right)
-(4)   The description of the image needs to be closely integrated with the caption. 
-(5)   Please describe it in one paragraph in Chinese.'''
+(3)   Please use Chinese to describe.
+(4)   If there is a subject, first describe the subject, and then use the subject as a reference to describe the surrounding objects.If there is no subject, describe it directly in order (clockwise or from left to right)
+(5)   The description of the image needs to be closely integrated with the caption\n. 
+'''
 
+    description_style = ''
+    aesthetics = ''
+    emotional = ''
+    Confidence = ''
+    cur_index = 6
+    if settings['description_style'] == "1":
+        description_style = f'''({cur_index})Assume that you are the author of this post on Moments. Please describe 
+        this post in the first person.\n '''
+        prompt += description_style
+        cur_index += 1
+
+
+    if settings['aesthetics'] == True:
+        aesthetics = f'''({cur_index})If you feel it is necessary to describe aesthetically relevant aspects, 
+        please describe them.\n '''
+        prompt += aesthetics
+        cur_index += 1
+    else:
+        aesthetics = ''
+
+    if settings['emotional'] == True:
+        emotional = f'''({cur_index})Please describe what kind of mood the author wants to express through this post, and how do I 
+        need to comment? Please give some suggestions in comments. \n'''
+        prompt += emotional
+        cur_index += 1
+    else:
+        emotional = ''
+
+    print(prompt)
     chat_completion = client.chat.completions.create(
         messages=[
             {
@@ -157,6 +190,7 @@ Instructions:
         ],
         max_tokens=500,
         model="gpt-4-vision-preview",
+        temperature=int(settings['Confidence'])
 
     )
     return chat_completion.choices[0].message.content
