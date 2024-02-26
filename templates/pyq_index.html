@@ -30,7 +30,7 @@
             <div class="post-content">{{ pyq.content }}</div>
             <div class="post-image" id="post-img">
                 {% for img in pyq.img_set.all %}
-                <img src="{{ img.img_url }}" alt="图片" >
+                <img src="{{ img.img_url }}" alt="图片" data-img-id="{{ img.img_id }}" data-pyq-id="{{ pyq.pyq_id }}">
                 {% endfor %}
             </div>
         </div>
@@ -189,32 +189,91 @@
     </script>
 
     <script>
+        var img_timer = null;
+        var img_longPressOccurred = false; // 长按img事件发生标志
+
         // var getAllImages = document.getElementsByTagName('img');
         postImg = document.getElementById('post-img')
         let getAllImages = postImg.getElementsByTagName('img')
         // loop through it
         for (var i = 0; i < getAllImages.length; i++) {
             (function(x) {
-                getAllImages[x].addEventListener('click', function() {
-                    console.log("请求已发送")
+                getAllImages[x].addEventListener('mousedown', function() {
+                    img_longPressOccurred = false; // 重置长按标志
+                    img_timer = setTimeout(function() {
+                        img_longPressOccurred = true; // 设置长按标志
+                    }, 700);
+                    console.log("长按触发")
                     var img_src = this.getAttribute('src')
-                    // 发送 AJAX 请求到后端
                     // 使用 jQuery 发送 AJAX 请求到后端
                     $.ajax({
-                        url: "/get_result_img/",
+                        url: "/get_img_embedding/",
                         type: "POST",
-                        data: JSON.stringify({ src: img_src, desc: description, id: id }),
+                        data: JSON.stringify({ img_url: img_src }),
                         contentType: 'application/json',
                         headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
                         success: function(response) {
-                            console.log(response.data); // 打印后端返回的响应
-                            $("#response").html(response.data);
+                            console.log(response.data);
                         },
                         error: function(xhr, status, error) {
                             console.error(error); // 打印错误信息
                         }
                     });
-                })
+                    const imgId = this.getAttribute('data-img-id'); // 获取图片ID
+                    saveImage(imgId, img_src); // 调用保存图片的函数
+                    const pyqId = this.getAttribute('data-pyq-id');
+                    window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
+
+                });
+
+                getAllImages[x].addEventListener('mouseup', function() {
+                    clearTimeout(img_timer);
+                });
+
+                getAllImages[x].addEventListener('click', function(e) {
+                    if (img_longPressOccurred) {
+                        e.preventDefault(); // 如果发生了长按，则阻止单击事件
+                        img_longPressOccurred = false; // 重置长按标志
+                    } else {
+                        // 在这里处理单击事件
+                        console.log("单击触发了");
+                        var img_src = this.getAttribute('src')
+                        // 使用 jQuery 发送 AJAX 请求到后端
+                        $.ajax({
+                            url: "/get_result_img/",
+                            type: "POST",
+                            data: JSON.stringify({ src: img_src, desc: description, id: id }),
+                            contentType: 'application/json',
+                            headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+                            success: function(response) {
+                                console.log(response.data); // 打印后端返回的响应
+                                $("#response").html(response.data);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error(error); // 打印错误信息
+                            }
+                        });
+                    }
+                });
+
+                function saveImage(imgId, imgSrc) {
+                    $.ajax({
+                        url: '/save_image/', // Django后端处理保存图片的URL
+                        type: 'POST',
+                        data: {
+                            'img_id': imgId,
+                            'img_url': imgSrc,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}' // 包含CSRF令牌
+                        },
+                        success: function(response) {
+                            console.log('图片保存成功！');
+                        },
+                        error: function(error) {
+                            console.log('图片保存失败：', error);
+                        }
+                    });
+                }
+
             }(i))
         }
     </script>
@@ -257,9 +316,9 @@
     <script type='text/javascript' src="{% static 'js/like_comment.js' %}"></script>
 
     <script>
-        document.getElementById('return-pyqs').addEventListener('click', function() {
-            window.location.href = '/';
-        });
+    //    document.getElementById('return-pyqs').addEventListener('click', function() {
+    //        window.location.href = '/';
+    //    });
     </script>
 </body>
 </html>

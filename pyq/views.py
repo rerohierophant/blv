@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.http import HttpResponse
@@ -9,21 +11,34 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import login, logout
+from django.conf import settings
+import requests
+from .sam_get_embedding import get_embedding
+# from .sam_get_onnx import get_onnx
 
-# Create your views here.
 from .models import Pyq
 from .models import Img
 from .models import Comment
+
 
 @login_required
 def pyqs_init(request):
     pyqs = Pyq.objects.all().prefetch_related('img_set', 'comment_set')
     return render(request, "pyqs.html", {'pyqs': pyqs})
 
+
 @login_required
 def pyq_detail(request, pyq_id):
     pyq = get_object_or_404(Pyq, pk=pyq_id)  # 根据pyq_id获取Pyq实例
     return render(request, 'pyq_index.html', {'pyq': pyq})
+
+
+@login_required
+def img_detail(request, pyq_id, img_id):
+    pyq = get_object_or_404(Pyq, pyq_id=pyq_id)
+    img = get_object_or_404(Img, img_id=img_id, pyq=pyq)
+    return render(request, 'index.html', {'img': img, 'pyq': pyq})
+
 
 @login_required
 def get_result_all(request):
@@ -40,6 +55,7 @@ def get_result_all(request):
 
     return JsonResponse({'data': res})
 
+
 @login_required
 def get_result_img(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -55,7 +71,6 @@ def get_result_img(request):
         'Confidence': user_profile.Confidence,
     }
     res = img_result(img_url, desc, p, settings)
-
 
     return JsonResponse({'data': res})
 
@@ -86,6 +101,7 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
 
+
 @login_required
 def setting_view(request):
     if request.method == 'POST':
@@ -112,7 +128,6 @@ def setting_view(request):
         return render(request, 'setting.html')
 
 
-
 def get_free_chat(request):
     data = json.loads(request.body.decode('utf-8'))
     voice_prompt = data.get('voice_input')
@@ -132,3 +147,44 @@ def get_free_chat(request):
     res = free_query(order, img_urls, desc, conversation_history)
     return JsonResponse({'data': res})
 
+
+def test(request):
+    return render(request, 'index.html')
+
+
+def img_embedding(request):
+    data = json.loads(request.body.decode('utf-8'))
+    img_url = data.get('img_url')
+
+    get_embedding(img_url)
+    return JsonResponse({'data': '模型载入中'})
+
+
+@csrf_exempt
+def save_image(request):
+    img_url = request.POST.get('img_url')
+
+    if img_url:
+        response = requests.get(img_url)
+        if response.status_code == 200:
+            # 假设你要保存图片到项目的'saved_images'目录下
+            file_path = f'static/dist/assets/data/target.jpg'
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+            return JsonResponse({'message': '图片保存成功！'}, status=200)
+        else:
+            return JsonResponse({'error': '无法下载图片'}, status=500)
+    else:
+        return JsonResponse({'error': '无效的图片ID'}, status=400)
+
+
+def delete_specific_file(request):
+    file_path_img = 'static/dist/assets/data/target.jpg'
+    file_path_embedding = 'static/dist/assets/data/embedding.npy'
+    try:
+        if os.path.exists(file_path_img):
+            os.remove(file_path_img)
+            os.remove(file_path_embedding)
+            return JsonResponse({"status": "success", "message": "File deleted successfully."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})

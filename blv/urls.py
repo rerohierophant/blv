@@ -27,4 +27,12 @@ urlpatterns = [
     path('get_result_img/', views.get_result_img),
     path('get_free_chat/', views.get_free_chat),
     path('pyqs/<int:pyq_id>/', views.pyq_detail, name='pyq_index'),
+
+    path('test/', views.test),
+    path('pyqs/<int:pyq_id>/image/<int:img_id>/', views.img_detail, name='img_detail'),
+
+    path('get_img_embedding/', views.img_embedding),
+    path('save_image/', views.save_image),
+
+    # path('path-to-delete-file/', views.delete_specific_file),
 ]
