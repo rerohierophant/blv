@@ -84,7 +84,6 @@
         recognition_inquery.onresult = function (event) {
             lastResult = event.results[event.resultIndex][0].transcript;
             console.log("识别结果: ", lastResult);
-
             $.ajax({
                 url: '/get_free_chat/',
                 type: 'POST',
@@ -100,7 +99,6 @@
                 }
             });
         };
-
         recognition_inquery.onend = function () {
             console.log("识别服务断开");
         };
@@ -113,58 +111,76 @@
         var commentString = comment.join(";");
         var description = "发帖时间为{{ pyq.time }}，发帖地点为{{ pyq.location}}，发帖正文为{{ pyq.content }}，得到的评论为" + commentString;
 
-
         const hoverBox = document.querySelector('.hover-box');
-        let timer = null;
+        let click_timer = null;
         var isListening = false;
-        let longPressOccurred = false; // 标志变量
 
-        hoverBox.addEventListener('mousedown', function() {
-            // 重置长按触发状态
-            longPressOccurred = false;
-            timer = setTimeout(function() {
-                recognition_inquery.start();
-                isListening = true;
-                longPressOccurred = true;
-                console.log("识别开始");
-            }, 500);
+        document.addEventListener('DOMContentLoaded', function() {
+            hoverBox.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                if (click_timer === null) {
+                    click_timer = setTimeout(function() {
+                        console.log('单击');
+                        click_timer = null;
+                        if (!isListening) {
+                            console.log('开始语音识别');
+                            recognition_inquery.start(); // 开始语音识别
+                            isListening = true;
+                        } else {
+                            console.log('结束语音识别');
+                            recognition_inquery.stop(); // 结束语音识别
+                            isListening = false;
+                        }
+                    }, 300); // 300ms内无第二次触摸视为单击
+                } else {
+                    clearTimeout(click_timer);
+                    click_timer = null;
+                    console.log('双击');
+                    dbclick_send_all();
+                }
+            });
+
+            hoverBox.addEventListener('click', function (){
+                if (!click_timer) {
+                    click_timer = setTimeout(function() {
+                        console.log('单击');
+                        click_timer = null;
+                        if (!isListening) {
+                            console.log('开始语音识别');
+                            recognition_inquery.start(); // 开始语音识别
+                            isListening = true;
+                        } else {
+                            console.log('结束语音识别');
+                            recognition_inquery.stop(); // 结束语音识别
+                            isListening = false;
+                        }
+                    }, 300); // Wait for a potential second click
+                } else {
+                    clearTimeout(click_timer);
+                    click_timer = null;
+                    console.log('双击');
+                    dbclick_send_all();
+                }
+            })
         })
 
-        document.addEventListener('mouseup', function() {
-            clearTimeout(timer);
-            if (isListening) {
-                recognition_inquery.stop();
-                isListening = false;
-                console.log("识别结束");
+        function dbclick_send_all(){
+            $.ajax({
+                url: '/get_result_all/',
+                type: 'POST',
+                data: JSON.stringify({desc: description, id: id}),
+                contentType: 'application/json',
+                headers: {'X-CSRFToken': getCookie('csrftoken')}, // 获取CSRF token
+                success: function (response) {
+                    console.log(response.data);
+                    $("#response").html(response.data);
+                },
+                error: function (error) {
+                    console.error(error);
+                }
+            });
+        }
 
-            }
-        });
-
-        // 监听click事件
-        hoverBox.addEventListener('click', function (e) {
-            // 如果长按已被触发，则阻止单击事件的执行
-            if (longPressOccurred) {
-                e.preventDefault();
-                longPressOccurred = false; // 重置长按标志
-            } else {
-                // 执行单击事件的操作
-                console.log('单击');
-                $.ajax({
-                    url: '/get_result_all/',
-                    type: 'POST',
-                    data: JSON.stringify({desc: description, id: id}),
-                    contentType: 'application/json',
-                    headers: {'X-CSRFToken': getCookie('csrftoken')}, // 获取CSRF token
-                    success: function (response) {
-                        console.log(response.data);
-                        $("#response").html(response.data);
-                    },
-                    error: function (error) {
-                        console.error(error);
-                    }
-                });
-            }
-        });
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -190,135 +206,127 @@
 
     <script>
         var img_timer = null;
-        var img_longPressOccurred = false; // 长按img事件发生标志
 
         // var getAllImages = document.getElementsByTagName('img');
-        postImg = document.getElementById('post-img')
-        let getAllImages = postImg.getElementsByTagName('img')
-        // loop through it
-        for (var i = 0; i < getAllImages.length; i++) {
-            (function(x) {
-                getAllImages[x].addEventListener('mousedown', function() {
-                    img_longPressOccurred = false; // 重置长按标志
-                    img_timer = setTimeout(function() {
-                        img_longPressOccurred = true; // 设置长按标志
-                    }, 700);
-                    console.log("长按触发")
-                    var img_src = this.getAttribute('src')
-                    // 使用 jQuery 发送 AJAX 请求到后端
-                    $.ajax({
-                        url: "/get_img_embedding/",
-                        type: "POST",
-                        data: JSON.stringify({ img_url: img_src }),
-                        contentType: 'application/json',
-                        headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
-                        success: function(response) {
-                            console.log(response.data);
-                        },
-                        error: function(xhr, status, error) {
-                            console.error(error); // 打印错误信息
-                        }
-                    });
-                    const imgId = this.getAttribute('data-img-id'); // 获取图片ID
-                    saveImage(imgId, img_src); // 调用保存图片的函数
-                    const pyqId = this.getAttribute('data-pyq-id');
-                    window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
-
-                });
-
-                getAllImages[x].addEventListener('mouseup', function() {
-                    clearTimeout(img_timer);
-                });
-
-                getAllImages[x].addEventListener('click', function(e) {
-                    if (img_longPressOccurred) {
-                        e.preventDefault(); // 如果发生了长按，则阻止单击事件
-                        img_longPressOccurred = false; // 重置长按标志
-                    } else {
-                        // 在这里处理单击事件
-                        console.log("单击触发了");
+        // 如果不想看头像postImg = document.getElementById('post-img')
+        let getAllImages = document.getElementsByTagName('img')
+        // 循环所有图片（包括头像）
+        document.addEventListener('DOMContentLoaded', function() {
+            for (var i = 0; i < getAllImages.length; i++) {
+                (function(x) {
+                    getAllImages[x].addEventListener('touchend', function(e) {
+                        e.preventDefault();
                         var img_src = this.getAttribute('src')
-                        // 使用 jQuery 发送 AJAX 请求到后端
-                        $.ajax({
-                            url: "/get_result_img/",
-                            type: "POST",
-                            data: JSON.stringify({ src: img_src, desc: description, id: id }),
-                            contentType: 'application/json',
-                            headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
-                            success: function(response) {
-                                console.log(response.data); // 打印后端返回的响应
-                                $("#response").html(response.data);
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error); // 打印错误信息
-                            }
-                        });
-                    }
-                });
+                        if (img_timer === null) {
+                            img_timer = setTimeout(function() {
+                                console.log('单击');
+                                img_timer = null;
+                                imgResponse(img_src);
+                            }, 300); // 300ms内无第二次触摸视为单击
+                        } else {
+                            clearTimeout(img_timer);
+                            img_timer = null;
+                            console.log('双击');
+                            saveEmbedding(img_src);
 
-                function saveImage(imgId, imgSrc) {
-                    $.ajax({
-                        url: '/save_image/', // Django后端处理保存图片的URL
-                        type: 'POST',
-                        data: {
-                            'img_id': imgId,
-                            'img_url': imgSrc,
-                            'csrfmiddlewaretoken': '{{ csrf_token }}' // 包含CSRF令牌
-                        },
-                        success: function(response) {
-                            console.log('图片保存成功！');
-                        },
-                        error: function(error) {
-                            console.log('图片保存失败：', error);
+                            const imgId = this.getAttribute('data-img-id'); // 获取图片ID
+                            saveImage(imgId, img_src); // 调用保存图片的函数
+                            const pyqId = this.getAttribute('data-pyq-id');
+                            window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
                         }
                     });
-                }
 
-            }(i))
-        }
-    </script>
+                    getAllImages[x].addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var img_src = this.getAttribute('src')
+                        if (img_timer === null) {
+                            img_timer = setTimeout(function() {
+                                console.log('单击');
+                                img_timer = null;
+                                imgResponse(img_src);
+                            }, 300); // 300ms内无第二次触摸视为单击
+                        } else {
+                            clearTimeout(img_timer);
+                            img_timer = null;
+                            console.log('双击');
+                            saveEmbedding(img_src);
 
-    <script>
-        //朗读结果
-        document.getElementById('read-btn').addEventListener('click', function() {
-            var text = document.getElementById('response').innerText;
-            var speech = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(speech);
-        });
-    </script>
+                            const imgId = this.getAttribute('data-img-id'); // 获取图片ID
+                            saveImage(imgId, img_src); // 调用保存图片的函数
+                            const pyqId = this.getAttribute('data-pyq-id');
+                            window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
+                        }
+                    });
 
-    <script>
-        // 获取要监测的元素
-        const targetNode = document.getElementById('response');
-
-        // 创建一个观察者实例并传入回调函数
-        const observer = new MutationObserver(function(mutationsList, observer) {
-            for(let mutation of mutationsList) {
-                if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                    const newText = targetNode.textContent || targetNode.innerText;
-                    // 调用朗读函数
-                    speakText(newText);
-                }
+                }(i))
             }
-        });
+        })
 
-        // 使用配置项开始观察目标节点
-        observer.observe(targetNode, { childList: true, subtree: true, characterData: true });
-
-        // 定义一个朗读文本的函数
-        function speakText(text) {
-            const synth = window.speechSynthesis;
-            const utterThis = new SpeechSynthesisUtterance(text);
-            synth.speak(utterThis);
+        function imgResponse(img_src){
+            // 使用 jQuery 发送 AJAX 请求到后端
+            $.ajax({
+                url: "/get_result_img/",
+                type: "POST",
+                data: JSON.stringify({ src: img_src, desc: description, id: id }),
+                contentType: 'application/json',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+                success: function(response) {
+                    console.log(response.data); // 打印后端返回的响应
+                    $("#response").html(response.data);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error); // 打印错误信息
+                }
+            });
         }
+
+
+        function saveEmbedding(img_src){
+            $.ajax({
+                url: "/get_img_embedding/",
+                type: "POST",
+                data: JSON.stringify({ img_url: img_src }),
+                contentType: 'application/json',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+                success: function(response) {
+                    console.log(response.data);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error); // 打印错误信息
+                }
+            });
+
+        }
+
+        function saveImage(imgId, imgSrc) {
+            $.ajax({
+                url: '/save_image/', // Django后端处理保存图片的URL
+                type: 'POST',
+                data: {
+                    'img_id': imgId,
+                    'img_url': imgSrc,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}' // 包含CSRF令牌
+                },
+                success: function(response) {
+                    console.log('图片保存成功！');
+                },
+                error: function(error) {
+                    console.log('图片保存失败：', error);
+                }
+            });
+        }
+
     </script>
+
+
+    <script src="{% static 'js/like_comment.js' %}"></script>
 
     <script type='text/javascript' src="{% static 'js/like_comment.js' %}"></script>
 
-    <script>
-    //    document.getElementById('return-pyqs').addEventListener('click', function() {
-    //        window.location.href = '/';
-    //    });
+    <script >
+        document.getElementById('return-pyqs').addEventListener('click', function() {
+            window.location.href = '/';
+        });
     </script>
 </body>
 </html>
