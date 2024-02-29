@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
-from .APIs import img_result, pyq_result, free_query
+from .APIs import img_result, pyq_result, free_query_pyq, free_query_img
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -144,7 +144,19 @@ def get_free_chat(request):
     p = Pyq.objects.get(pk=p_id)
     img_urls = list(p.img_set.all().values_list('img_url', flat=True))
 
-    res = free_query(order, img_urls, desc, conversation_history)
+    res = free_query_pyq(order, img_urls, desc, conversation_history)
+    return JsonResponse({'data': res})
+
+
+def get_img_chat(request):
+    data = json.loads(request.body.decode('utf-8'))
+    voice_prompt = data.get('voice_input')
+    conversation_history = request.session.get("conversation_history", [])
+    conversation_history.append({"type": "text", "text": voice_prompt})
+    order = "请根据这张图片的内容回答用户提出的问题"
+    desc = data.get('desc')
+    img_url = data.get('img_url')
+    res = free_query_img(order, img_url, desc, conversation_history)
     return JsonResponse({'data': res})
 
 
@@ -177,14 +189,3 @@ def save_image(request):
     else:
         return JsonResponse({'error': '无效的图片ID'}, status=400)
 
-
-def delete_specific_file(request):
-    file_path_img = 'static/dist/assets/data/target.jpg'
-    file_path_embedding = 'static/dist/assets/data/embedding.npy'
-    try:
-        if os.path.exists(file_path_img):
-            os.remove(file_path_img)
-            os.remove(file_path_embedding)
-            return JsonResponse({"status": "success", "message": "File deleted successfully."})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})

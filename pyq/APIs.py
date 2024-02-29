@@ -61,7 +61,7 @@ def pyq_result(order, img_urls, desc):
     return chat_completion.choices[0].message.content
 
 
-def free_query(order, img_urls, desc, conversation_history):
+def free_query_pyq(order, img_urls, desc, conversation_history):
     client = OpenAI(
         api_key=api_key,
     )
@@ -82,6 +82,38 @@ def free_query(order, img_urls, desc, conversation_history):
             {
                 "role": "user",
                 "content": img_template
+            },
+            {
+                "role": "user",
+                "content": conversation_history
+            }
+        ],
+        model="gpt-4-vision-preview",
+        max_tokens=max_tokens,
+    )
+    return chat_completion.choices[0].message.content
+
+
+def free_query_img(order, img_url, desc, conversation_history):
+    client = OpenAI(
+        api_key=api_key,
+    )
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": order},
+                    {"type": "text", "text": desc},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url,
+                        },
+                    },
+
+                ],
             },
             {
                 "role": "user",
