@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
-from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation, img_levels,translation
+from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation
 from django.urls import reverse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -63,28 +63,6 @@ def img_detail(request, pyq_id, img_id):
     # return JsonResponse({'data': loc, 'audio_fp': audio_fp, ' ': objects_len})
     return render(request, 'img_index.html', {'data': loc, 'audio_fp': audio_fp, 'objects_len': objects_len})
     # return render(request, 'img_index.html', {'img': img, 'pyq': pyq})
-
-
-@csrf_exempt
-def cope_ajax_img(request):
-    img_url = str(request.POST.get('img_url'))
-    desc = str(request.POST.get('desc'))
-    caption = str(request.POST.get('content'))
-    pyq_id = request.POST.get('pyq_id')
-    img_id = request.POST.get('img_id')
-
-    elements = img_levels(img_url, desc, caption)
-    # request.session['img_elements'] = elements
-    print(elements)
-    elements_cn = translation(str(elements))
-    # 创建或更新数据库记录
-    img, created = Img.objects.update_or_create(
-        img_id=img_id,
-        defaults={'pyq_id': pyq_id, 'img_url': img_url, 'type': '你的类型', 'elements': elements, 'elements_cn': elements_cn}
-    )
-
-    # request.session['img_elements_cn'] = elements_cn
-    return JsonResponse({'status': 'success'})
 
 
 @login_required
@@ -206,11 +184,6 @@ def get_img_chat(request):
     img_url = data.get('img_url')
     res = free_query_img(order, img_url, desc, conversation_history)
     return JsonResponse({'data': res})
-
-
-
-def test(request):
-    return render(request, 'img_index.html')
 
 
 def img_embedding(request):

@@ -246,6 +246,7 @@
 
         let getAllImages = document.getElementsByTagName('img')
         var tapCount = 0;
+        var pyq_content = "{{ pyq.content }}"
         $(document).ready(function() {
             for (var i = 0; i < getAllImages.length; i++) {
                 (function(x) {
@@ -279,7 +280,7 @@
                                 const imgId = element.getAttribute('data-img-id'); // 获取图片ID
                                 //saveImage(imgId, img_src); // 调用保存图片的函数
                                 const pyqId = element.getAttribute('data-pyq-id');
-                                getElem(pyqId, imgId, img_src, pyq_content, description);
+                                window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
                             }
                             tapCount = 0;
                         }, 600); // 设置一个延迟时间，足够区分单击、双击和三击
@@ -363,29 +364,6 @@
                 }
             });
         }
-
-        function getElem(pyqId, imgId, imgSrc, content,desc){
-            $.ajax({
-                url: '/cope_ajax_img/', // Django后端处理保存图片的URL
-                type: 'POST',
-                data: {
-                    'pyq_id': pyqId,
-                    'img_id': imgId,
-                    'img_url': imgSrc,
-                    'content': content,
-                    'desc': desc,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}' // 包含CSRF令牌
-                },
-                success: function(response) {
-                    console.log('元素获取成功！');
-                    window.location.href = `/pyqs/${pyqId}/image/${imgId}`; // 修改为你的页面B的URL
-                },
-                error: function(error) {
-                    console.log('元素获取失败：', error);
-                }
-            });
-        }
-
     </script>
 
 {#    <script src="{% static 'js/like_comment.js' %}"></script>#}

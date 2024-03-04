@@ -13,11 +13,11 @@
     <link rel="stylesheet" href="{% static 'css/explore.css' %}">
     <script src="{% static 'js/jquery.min.js' %}"></script>
 </head>
-<body onclick="playAudio()" class="w-full h-full">
+<body class="w-full h-full">
     <span id="obj_len">{{objects_len}}</span>
     <span id="cur_id">0</span>
     <audio style="display: none;" controls="controls" hidden id="audio" autoplay="true"  src="{{audio_fp}}">123</audio>
-    <div id="root" class="w-full h-full" style="display: none;">
+    <div id="root" class="w-full h-full">
 
     </div>
     <div id="second-layer" class="second-layer-container">
@@ -32,9 +32,6 @@
         <span>上一个</span>
     </div>
     <script>
-        window.addEventListener("beforeunload", function(event) {
-            navigator.sendBeacon("/path-to-delete-file/");
-        });
         function playAudio() {
             audio = document.getElementById('audio')
             audio.play()
@@ -45,7 +42,6 @@
             audio.src = audio_src
             audio.play()
         }
-
 
         function second_layer_explore(){
             $.ajax({
@@ -125,24 +121,6 @@
             console.log('第一个对象');
         }
 
-
-
-    </script>
-
-    <script>
-        elements = "{{ elements_cn }}"
-        window.onload = function() {
-            if ('speechSynthesis' in window) {
-                var msg = new SpeechSynthesisUtterance(elements);
-                msg.lang = 'zh-CN'; // 设置朗读语言为中文
-
-                // 朗读文本
-                window.speechSynthesis.speak(msg);
-            } else {
-                // 如果不支持，可以在这里添加备用逻辑，例如显示一个警告
-                console.log('Your browser does not support speechSynthesis.');
-            }
-        };
     </script>
 </body>
 </html>
