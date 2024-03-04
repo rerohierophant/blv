@@ -126,6 +126,23 @@
         }
 
 
+
+    </script>
+
+    <script>
+        elements = "{{ elements_cn }}"
+        window.onload = function() {
+            if ('speechSynthesis' in window) {
+                var msg = new SpeechSynthesisUtterance(elements);
+                msg.lang = 'zh-CN'; // 设置朗读语言为中文
+
+                // 朗读文本
+                window.speechSynthesis.speak(msg);
+            } else {
+                // 如果不支持，可以在这里添加备用逻辑，例如显示一个警告
+                console.log('Your browser does not support speechSynthesis.');
+            }
+        };
     </script>
 </body>
 </html>

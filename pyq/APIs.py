@@ -3,6 +3,8 @@ import os
 import base64
 import json
 from .models import Img
+from django.http import HttpResponse
+
 
 api_key = "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"
 max_tokens = 800
@@ -472,3 +474,64 @@ NOTE:
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+def img_levels(img_url, desc, caption):
+    client = OpenAI(
+        api_key=api_key,
+    )
+    type = getImageType(img_url, desc, caption)
+    prompt = f'''This is a "{type}" type picture in the circle of friends. Please tell me the main objects that make 
+    up this image. 
+    Note: (1)You only need to name the object, not describe it. For example: the male on the left. 
+    (2)When naming objects, you need to pay attention that the name should reflect the unique characteristics of the 
+    object compared to other objects. 
+    (3)Finally, all you need to do is give me an array containing all the objects, please provide each object with a 
+    string. No need for any extra text '''
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url,
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        model="gpt-4-vision-preview",
+
+    )
+    elem_char = chat_completion.choices[0].message.content
+
+    char = elem_char.strip()[1:-1]
+    elements = [element.strip()[1:-1] for element in char.split(',')]
+    return elements
+
+
+def translation(text):
+    client = OpenAI(
+        api_key=api_key,
+    )
+
+    prompt = "请将输入的英文字符翻译成通俗的中文，用逗号隔开即可"
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "text", "text": text},
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        model="gpt-4-vision-preview",
+
+    )
+    return chat_completion.choices[0].message.content

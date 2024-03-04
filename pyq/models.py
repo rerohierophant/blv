@@ -140,6 +140,8 @@ class Img(models.Model):
     img_url = models.CharField(max_length=2048, blank=True, null=True)
     type = models.CharField(max_length=40, blank=True, null=True)
     sorted_objs = models.CharField(max_length=2048, blank=True, null=True)
+    # elements = models.CharField(max_length=2000, blank=True, null=True)
+    # elements_cn = models.CharField(max_length=2000, blank=True, null=True)
     class Meta:
         managed = True
         db_table = 'img'
