@@ -1,5 +1,8 @@
 from openai import OpenAI
 import os
+import base64
+import json
+from .models import Img
 
 api_key = "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"
 max_tokens = 800
@@ -251,3 +254,158 @@ Instructions:
 
     )
     return chat_completion.choices[0].message.content
+
+
+def getSecondLayerDes(img_url, type, caption, img, pre_des_text):
+    img.sorted_objs = ""
+    img.save()
+    # 获取图片中的对象
+    objects = getImgObjects(img_url, type)
+    # 按重要程度排序
+    sorted_objects = getSortedObjects(img_url, objects, type, caption)
+    img.sorted_objs = sorted_objects
+    img.save()
+    sorted_objects_arr = json.loads(sorted_objects)
+    print(sorted_objects_arr)
+    objects_len = len(sorted_objects_arr)
+    loc = getObjectLocation(img_url, sorted_objects_arr[0], pre_des_text)
+    print(loc)
+    return {"loc": loc, "objects_len": objects_len}
+
+
+def getImgObjects(img_url, type):
+    client = OpenAI(
+        api_key=api_key,
+    )
+    prompt = f'''This is a "{type}" type picture in the circle of friends. Please tell me the main objects that make up this image.
+       Note: 
+       (1)You only need to name the object, not describe it. For example: the male on the left. 
+       (2)When naming objects, you need to pay attention that the name should reflect the unique characteristics of the object compared to other objects.
+       (3)Finally, all you need to do is give me an array containing all the objects, please provide each object with a string. No need for any extra text'''
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url,
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        temperature=0.95,
+        model="gpt-4-vision-preview",
+    )
+    response = chat_completion.choices[0].message.content
+    return response
+
+
+def getSortedObjects(img_url, objects, type, caption):
+    client = OpenAI(
+        api_key=api_key,
+    )
+    prompt = f'''This is a "{type}" type image. The caption of the image is {caption}. This type of image has the following key points
+{key_ele_dict[type]}. 
+You have identified the following objects in this image:
+{objects} Please refer to the number of key points that each object has (including the more important points, 
+the higher the importance of the object may be), and combine the accompanying text of the image to understand the key 
+points that the author wants to express, and sort the importance of each object 
+NOTE: all you need to do is give me a sorted array containing all the objects, please provide each object with a string. No need for any extra text'''
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        model="gpt-4-vision-preview",
+    )
+    response = chat_completion.choices[0].message.content
+    return response
+
+
+def getMarkedObjectsDescription(type, caption, ori_img_url, marked_objects):
+    client = OpenAI(
+        api_key=api_key,
+    )
+    prompt = f'''This is an "{type}" type image in the circle of friends. The caption of the image is "{caption}".
+                 Task: Please describe the "{marked_objects}" in the image
+                 Note:Answer me in Chinese'''
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": ori_img_url,
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        temperature=1,
+        model="gpt-4-vision-preview",
+    )
+    response = chat_completion.choices[0].message.content
+    return response
+
+
+def getObjectLocation(img_url, obj_name, pre_des_text):
+    client = OpenAI(
+        api_key=api_key,
+    )
+    prompt = f'''Suppose you are a person who describes pictures for the blind. Now please identify the [{obj_name}] in the picture and tell the blind person the orientation of this object. Your orientation description needs to include the size and orientation of the object in the image
+NOTE: 
+(1)You need to identify the complete object.
+(2)You just need to tell me the location information of the object, without any extra text,no object description is required
+(3)Answer me in Chinese, and start your description with the sentense: "{pre_des_text}"'''
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url,
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=max_tokens,
+        temperature=0.95,
+        model="gpt-4-vision-preview",
+    )
+    response = chat_completion.choices[0].message.content
+    return response
+
+
+
+# Function to encode the image
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')

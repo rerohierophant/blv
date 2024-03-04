@@ -138,8 +138,8 @@ class Img(models.Model):
     img_id = models.AutoField(primary_key=True)
     pyq = models.ForeignKey('Pyq', models.DO_NOTHING, blank=True, null=True)
     img_url = models.CharField(max_length=2048, blank=True, null=True)
-    type = models.CharField(max_length=20, blank=True, null=True)
-
+    type = models.CharField(max_length=40, blank=True, null=True)
+    sorted_objs = models.CharField(max_length=2048, blank=True, null=True)
     class Meta:
         managed = True
         db_table = 'img'

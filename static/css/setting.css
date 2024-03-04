@@ -75,3 +75,9 @@ body {
   padding: 8px 15px;
   border: 1px solid gray;
 }
+.sub-content-text {
+  padding: 0 10px;
+}
+.subtitle-text {
+  padding: 0 10px;
+}

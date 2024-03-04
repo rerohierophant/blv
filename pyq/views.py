@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
-from .APIs import img_result, pyq_result, free_query
+from .APIs import img_result, pyq_result, free_query, getSecondLayerDes, getObjectLocation
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -15,10 +15,13 @@ from django.conf import settings
 import requests
 from .sam_get_embedding import get_embedding
 # from .sam_get_onnx import get_onnx
+from .second_layer import explore
+from .text2speech import text2speech
 
 from .models import Pyq
 from .models import Img
 from .models import Comment
+import json
 
 
 @login_required
@@ -33,11 +36,32 @@ def pyq_detail(request, pyq_id):
     return render(request, 'pyq_index.html', {'pyq': pyq})
 
 
+def pre_loc_info(obj_id):
+    pre_text = ""
+    if int(obj_id) == 0:
+        pre_text = "现在你进入了图像探索模式，现在探索图像中的最主体部分。"
+    else:
+        pre_text = f"现在探索图像中的第{str(int(obj_id) + 1)}个主体部分。"
+    return pre_text
+
+
 @login_required
 def img_detail(request, pyq_id, img_id):
     pyq = get_object_or_404(Pyq, pyq_id=pyq_id)
     img = get_object_or_404(Img, img_id=img_id, pyq=pyq)
-    return render(request, 'index.html', {'img': img, 'pyq': pyq})
+    # data = json.loads(request.body.decode('utf-8'))
+    # img_id = data.get("img_id")
+    # pyq_id = data.get("pyq_id")
+    caption = pyq.content
+    type = img.type
+    img_url = img.img_url
+    payload = getSecondLayerDes(img_url, type, caption, img, pre_loc_info(0))
+    loc = payload["loc"]
+    objects_len = payload["objects_len"]
+    audio_fp = f"{text2speech(loc)}"
+    # return JsonResponse({'data': loc, 'audio_fp': audio_fp, ' ': objects_len})
+    return render(request, 'index.html', {'data': loc, 'audio_fp': audio_fp, 'objects_len': objects_len})
+    # return render(request, 'index.html', {'img': img, 'pyq': pyq})
 
 
 @login_required
@@ -52,8 +76,8 @@ def get_result_all(request):
     desc = data.get('desc')
 
     res = pyq_result(order, img_urls, desc)
-
-    return JsonResponse({'data': res})
+    audio_fp = text2speech(res)
+    return JsonResponse({'data': res, 'audio_fp': audio_fp})
 
 
 @login_required
@@ -71,8 +95,8 @@ def get_result_img(request):
         'Confidence': user_profile.Confidence,
     }
     res = img_result(img_url, desc, p, settings)
-
-    return JsonResponse({'data': res})
+    audio_fp = text2speech(res)
+    return JsonResponse({'data': res, 'audio_fp': audio_fp})
 
 
 def login_view(request):
@@ -145,7 +169,8 @@ def get_free_chat(request):
     img_urls = list(p.img_set.all().values_list('img_url', flat=True))
 
     res = free_query(order, img_urls, desc, conversation_history)
-    return JsonResponse({'data': res})
+    audio_fp = text2speech(res)
+    return JsonResponse({'data': res, 'audio_fp': audio_fp})
 
 
 def test(request):
@@ -188,3 +213,27 @@ def delete_specific_file(request):
             return JsonResponse({"status": "success", "message": "File deleted successfully."})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+
+
+def second_layer_explore(request):
+    data = json.loads(request.body.decode('utf-8'))
+    img_id = data.get("img_id")
+    cur_id = int(data.get("cur_id"))
+    img = Img.objects.get(pk=img_id)
+    pyq_id = data.get("pyq_id")
+    pyq = Pyq.objects.get(pk=pyq_id)
+    caption = pyq.content
+    type = img.type
+    img_url = img.img_url
+    sorted_object = img.sorted_objs
+    sorted_object_arr = json.loads(sorted_object)
+    cur_obj = sorted_object_arr[cur_id]
+    loc = getObjectLocation(img_url, cur_obj, pre_loc_info(cur_obj))
+    cur_obj_axis = explore_object(cur_obj, img_id)
+    audio_fp = f"{text2speech(loc)}"
+    return JsonResponse({'loc': loc, 'audio_fp': audio_fp, 'cur_obj_axis': cur_obj_axis})
+
+
+# TODO 根据图中对象描述获取对象的方法写在这里。输出为矩形框的坐标
+def explore_object(obj_name, img_id):
+    return ""

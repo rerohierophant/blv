@@ -33,6 +33,7 @@ urlpatterns = [
 
     path('get_img_embedding/', views.img_embedding),
     path('save_image/', views.save_image),
+    path('second_layer_explore/', views.second_layer_explore)
 
     # path('path-to-delete-file/', views.delete_specific_file),
 ]
