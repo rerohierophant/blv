@@ -6,8 +6,8 @@ from .models import Img
 
 api_key = "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"
 max_tokens = 800
-os.environ["http_proxy"] = "http://localhost:33210"
-os.environ["https_proxy"] = "http://localhost:33210"
+# os.environ["http_proxy"] = "http://localhost:33210"
+# os.environ["https_proxy"] = "http://localhost:33210"
 
 key_ele_dict = {
     'activities and experiences': '1.Scene: [location, activities, natural landscape, Architecture, weather]\n'
@@ -64,7 +64,7 @@ def pyq_result(order, img_urls, desc):
     return chat_completion.choices[0].message.content
 
 
-def free_query(order, img_urls, desc, conversation_history):
+def free_query_pyq(order, img_urls, desc, conversation_history):
     client = OpenAI(
         api_key=api_key,
     )
@@ -97,13 +97,45 @@ def free_query(order, img_urls, desc, conversation_history):
     return chat_completion.choices[0].message.content
 
 
+def free_query_img(order, img_url, desc, conversation_history):
+    client = OpenAI(
+        api_key=api_key,
+    )
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": order},
+                    {"type": "text", "text": desc},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_url,
+                        },
+                    },
+
+                ],
+            },
+            {
+                "role": "user",
+                "content": conversation_history
+            }
+        ],
+        model="gpt-4-vision-preview",
+        max_tokens=max_tokens,
+    )
+    return chat_completion.choices[0].message.content
+
+
 def img_result(img_url, desc, p, settings):
     caption = p.content
-    type = getImageType(img_url, desc, caption)
-    print(type)
-    key_ele = getKeyEle(img_url, desc, caption, type)
-    print(key_ele)
-    img_des = getImgDescription(img_url, desc, caption, type, key_ele, settings)
+    # type = getImageType(img_url, desc, caption)
+    # print(type)
+    # key_ele = getKeyEle(img_url, desc, caption, type)
+    # print(key_ele)
+    img_des = getImgDescription(img_url, desc, caption, key_ele, settings)
     return img_des
 
 
@@ -164,7 +196,7 @@ In pictures of the {type} type, people will pay more attention to the following 
 {key_ele_dict[type]} Task: The above elements are not all the key points that the author wants to express, so you can 
 omit some unimportant elements. You need to combine pictures and text to filter out which of the above elements in 
 the picture are the key points that the author wants to express. Note: You only need to give each key element and a 
-brief description of the corresponding '''
+brief description of the corresponding'''
 
     chat_completion = client.chat.completions.create(
         messages=[
@@ -189,15 +221,46 @@ brief description of the corresponding '''
     return chat_completion.choices[0].message.content
 
 
-def getImgDescription(img_url, desc, caption, type, key_ele, settings):
+def getImgDescription(img_url, desc, caption, key_ele, settings):
     client = OpenAI(
         api_key=api_key,
     )
-    prompt = f'''Context: I provided you with an image about {type} on social media, the The caption of the image is {caption} 
-Task: Please play the role of an image describer, describing images for blind people. We provide 1 image, please describe with image captions. 
+    prompt = f'''Please follow the instructions below.
+Step1:  identity image type.
+There are many types of pictures on social media, including goodies sharing, expression of 
+emotions or opinions, activities and experiences, personal portraits, interpersonal relations and artistic creations. 
+Task: Now I upload a image, the caption of the image is '{caption}'. please help me determine   what type it is. You only need to answer the type of the image, for example: "activities and experiences"
+
+Step2: identity image key elements.
+Now you have identitied the type of the image.You should choose different image highlights in the table below according to different types.
+'activities and experiences': '1.Scene: [location, activities, natural landscape, Architecture, weather]'
+                                  '2.People: [number, actions, gender, appearance, facial expression, interactions '
+                                  'between people, clothes]',
+
+'goodies sharing': '1.Object: [Name, Number, Color, Shape, Texture, Material, Logo, Text]',
+
+'expression of emotions or opinions': '1.Scene: [location, activities]'
+                                          '2.People: [Number, Facial expression, Actions]',
+
+'personal portraits': '1.Scene: [location, activities]\n'
+                          '2.People: [Number, Gender, Appearance, Body shape, Hairstyle, Facial expression, Makeup, '
+                          'Actions, Clothes] '
+                          '3.Object: [Name]',
+
+'interpersonal relationship': '1.Scene: [location, activities]\n'
+                                  '2.People: [Number, Gender, Appearance, Hairstyle, Facial expression, Interactions, '
+                                  'Actions, Clothes] '
+                                  '3.Object: [Name. Number]',
+'Artistic Creations': '1.Scene: [location, activities, Natural Landscape, Architecture]'
+                          '2.People: [Number, Gender, Appearance,, Facial expression, Interactions, Actions]'
+                          '3.Object: [Name, Number, Color, Shape, Texture, Material]'
+The caption of the image is "雪龄+1".The above elements are not all the key points that the author wants to express, so you can 
+omit some unimportant elements. You need to combine pictures and text to filter out which of the above elements in the picture are the key points that the author wants to express.
+
+Step3：describe the image
+Please play the role of an image describer, describing images for blind people. We provide 1 image, please describe with image captions. 
 Instructions:
-(1)   You need to describe in detail each key element of the image below: 
-{key_ele}
+(1)   You need to describe in detail each key element of the image in step 2: 
 (2)   You should briefly describe elements not mentioned in Instruction(1) 
 (3)   Please use Chinese to describe.
 (4)   If there is a subject, first describe the subject, and then use the subject as a reference to describe the surrounding objects.If there is no subject, describe it directly in order (clockwise or from left to right)

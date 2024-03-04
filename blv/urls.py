@@ -26,6 +26,7 @@ urlpatterns = [
     path('get_result_all/', views.get_result_all),
     path('get_result_img/', views.get_result_img),
     path('get_free_chat/', views.get_free_chat),
+    path('get_img_chat/', views.get_img_chat),
     path('pyqs/<int:pyq_id>/', views.pyq_detail, name='pyq_index'),
 
     path('test/', views.test),

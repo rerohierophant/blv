@@ -3,7 +3,7 @@ body {
     background-color: #f0f2f5;
     padding: 0;
     max-width: 960px; /* 可以根据需要调整 */
-    width: 50%; /* 占屏幕的三分之二 */
+    width: 60%; /* 占屏幕的三分之二 */
     margin: auto;
 }
 
@@ -126,7 +126,7 @@ body {
     height: 20px;
 }
 
-.like-btn, .comment-btn, .AI-btn {
+.like-btn, .comment-btn, .hover-box {
     background-color: #ffffff;
     border: none;
     padding: 5px 10px;
@@ -152,23 +152,3 @@ body {
     margin-left: 8px;
 }
 
-.hover-box {
-    position: absolute;
-    bottom: 35%;
-    right: 20px;
-    width: 50px; /* 调整悬浮框的大小以适应圆形图标 */
-    height: 50px;
-    display: flex;
-    justify-content: center; /* 水平居中 */
-    align-items: center; /* 垂直居中 */
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.2);
-    border-radius: 50%; /* 使悬浮框本身也成为圆形 */
-}
-
-.hover-box svg {
-    width: 30px; /* 圆形图标的直径 */
-    height: 30px; /* 圆形图标的直径 */
-    border-radius: 50%; /* 使<div>成为圆形 */
-}

@@ -6,7 +6,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
-from .APIs import img_result, pyq_result, free_query, getSecondLayerDes, getObjectLocation
+from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -168,9 +169,22 @@ def get_free_chat(request):
     p = Pyq.objects.get(pk=p_id)
     img_urls = list(p.img_set.all().values_list('img_url', flat=True))
 
-    res = free_query(order, img_urls, desc, conversation_history)
+    res = free_query_pyq(order, img_urls, desc, conversation_history)
     audio_fp = text2speech(res)
     return JsonResponse({'data': res, 'audio_fp': audio_fp})
+
+
+def get_img_chat(request):
+    data = json.loads(request.body.decode('utf-8'))
+    voice_prompt = data.get('voice_input')
+    conversation_history = request.session.get("conversation_history", [])
+    conversation_history.append({"type": "text", "text": voice_prompt})
+    order = "请根据这张图片的内容回答用户提出的问题"
+    desc = data.get('desc')
+    img_url = data.get('img_url')
+    res = free_query_img(order, img_url, desc, conversation_history)
+    return JsonResponse({'data': res})
+
 
 
 def test(request):
@@ -237,3 +251,4 @@ def second_layer_explore(request):
 # TODO 根据图中对象描述获取对象的方法写在这里。输出为矩形框的坐标
 def explore_object(obj_name, img_id):
     return ""
+
