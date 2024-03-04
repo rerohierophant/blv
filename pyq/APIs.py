@@ -6,8 +6,8 @@ from .models import Img
 
 api_key = "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"
 max_tokens = 800
-# os.environ["http_proxy"] = "http://localhost:33210"
-# os.environ["https_proxy"] = "http://localhost:33210"
+os.environ["http_proxy"] = "http://localhost:33210"
+os.environ["https_proxy"] = "http://localhost:33210"
 
 key_ele_dict = {
     'activities and experiences': '1.Scene: [location, activities, natural landscape, Architecture, weather]\n'
