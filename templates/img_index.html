@@ -20,107 +20,225 @@
     <div id="root" class="w-full h-full">
 
     </div>
-    <div id="second-layer" class="second-layer-container">
-        <div class="second-layer-wrapper">
-            <img id="second-layer-img" src="{% static 'dist/assets/data/target.jpg' %}" alt="">
-        </div>
-    </div>
     <div onclick="nextObj()" id="third-btn">
         <span>下一个</span>
     </div>
     <div onclick="preObj()" id="second-btn">
         <span>上一个</span>
     </div>
-    <script>
-        function playAudio() {
-            audio = document.getElementById('audio')
-            audio.play()
-        }
 
-        function updateAudio(audio_src) {
-            audio = document.getElementById('audio')
-            audio.src = audio_src
-            audio.play()
-        }
+<script>
 
-        function second_layer_explore(){
-            $.ajax({
-                url: "/second_layer_explore/",
-                type: "POST",
-                data: JSON.stringify({ img_id: getImgId(), pyq_id: getPyqId(), cur_id: getCurObjId() }),
-                contentType: 'application/json',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
-                success: function(response) {
-                    console.log(response.audio_fp); 
-                    updateAudio(response.audio_fp)
-                },
-                error: function(xhr, status, error) {
-                    console.error(error); 
+    function playAudio() {
+        audio = document.getElementById('audio')
+        audio.play()
+    }
+
+    function updateAudio(audio_src) {
+        audio = document.getElementById('audio')
+        audio.src = audio_src
+        audio.play()
+    }
+
+    function second_layer_explore(){
+        $.ajax({
+            url: "/second_layer_explore/",
+            type: "POST",
+            data: JSON.stringify({ img_id: getImgId(), pyq_id: getPyqId(), cur_id: getCurObjId() }),
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+            success: function(response) {
+                console.log(response.audio_fp);
+                console.log(response.cur_position)
+                updateAudio(response.audio_fp);
+                var x = response.cur_position[0]*0.9
+                var y = response.cur_position[1]*0.9
+                var width = response.cur_position[2]*0.9
+                var height = response.cur_position[3]*0.9
+                console.log(x)
+                loadMask(x,y,width,height)
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
-            });
-        }
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    let cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        function getPyqId() {
-            return window.location.href.split('pyqs/')[1].split('/')[0]
-        }
-        function getImgId() {
-            return window.location.href.split('image/')[1].split('/')[0]
-        }
-
-        function getObjLen() {
-            let e = document.getElementById('obj_len')
-            return Number(e.innerText);
-        }
-
-        function getCurObjId() {
-            let e = document.getElementById('cur_id')
-            return Number(e.innerText);
-        }
-
-        function nextObj() {
-            let cur_obj_id_ele = document.getElementById('cur_id')
-            let max_obj_id = getObjLen()
-            let cur_obj_id = getCurObjId()
-            if (cur_obj_id === max_obj_id) {
-                isLastObj();
-                return;
-            } else {
-                cur_obj_id_ele.innerHTML = `${cur_obj_id + 1}`
-                second_layer_explore()
             }
         }
-        function preObj() {
-            let cur_obj_id_ele = document.getElementById('cur_id')
-            let cur_obj_id = getCurObjId()
-            if (cur_obj_id === 0) {
-                isFirstObj();
-                return;
-            } else {
-                cur_obj_id_ele.innerHTML = `${cur_obj_id - 1}`
-                second_layer_explore()
+        return cookieValue;
+    }
+
+    function getPyqId() {
+        return window.location.href.split('pyqs/')[1].split('/')[0]
+    }
+    function getImgId() {
+        return window.location.href.split('image/')[1].split('/')[0]
+    }
+
+    function getObjLen() {
+        let e = document.getElementById('obj_len')
+        return Number(e.innerText);
+    }
+
+    function getCurObjId() {
+        let e = document.getElementById('cur_id')
+        return Number(e.innerText);
+    }
+
+    function nextObj() {
+        let cur_obj_id_ele = document.getElementById('cur_id')
+        let max_obj_id = getObjLen()
+        let cur_obj_id = getCurObjId()
+
+        const wrapperDiv = document.querySelector('#myWrapperDiv');
+        // 定位到图片元素
+        if(wrapperDiv){
+            const imgElement = wrapperDiv.querySelector('img');
+
+            if (wrapperDiv && imgElement) {
+              // 将图片元素移回其原来的位置，即wrapperDiv的父元素
+              wrapperDiv.parentNode.insertBefore(imgElement, wrapperDiv);
+              // 删除'h-full'类的div元素
+              wrapperDiv.parentNode.removeChild(wrapperDiv);
             }
         }
-        function isLastObj() {
-            console.log('最后一个对象');
-        }
-        function isFirstObj() {
-            console.log('第一个对象');
-        }
 
-    </script>
+        if (cur_obj_id === max_obj_id) {
+            isLastObj();
+            return;
+        } else {
+            cur_obj_id_ele.innerHTML = `${cur_obj_id + 1}`
+            second_layer_explore()
+        }
+    }
+    function preObj() {
+        let cur_obj_id_ele = document.getElementById('cur_id')
+        let cur_obj_id = getCurObjId()
+
+        const wrapperDiv = document.querySelector('#myWrapperDiv');
+        // 定位到图片元素
+        if(wrapperDiv){
+            const imgElement = wrapperDiv.querySelector('img');
+
+            if (wrapperDiv && imgElement) {
+              // 将图片元素移回其原来的位置，即wrapperDiv的父元素
+              wrapperDiv.parentNode.insertBefore(imgElement, wrapperDiv);
+              // 删除'h-full'类的div元素
+              wrapperDiv.parentNode.removeChild(wrapperDiv);
+            }
+        }
+        if (cur_obj_id === 0) {
+            isFirstObj();
+            return;
+        } else {
+            cur_obj_id_ele.innerHTML = `${cur_obj_id - 1}`
+            second_layer_explore()
+        }
+    }
+    function isLastObj() {
+        console.log('最后一个对象');
+    }
+    function isFirstObj() {
+        console.log('第一个对象');
+    }
+
+</script>
+
+<script>
+    function loadMask(x,y,width,height) {
+        // 定位到页面中的图片元素
+        const imgElement = document.querySelector('img[src="http://127.0.0.1:8000/static/dist/assets/data/target.jpg"]');
+        if (imgElement) {
+        // 获取图片的宽度和高度
+        const imgWidth = imgElement.offsetWidth;
+        const imgHeight = imgElement.offsetHeight;
+
+        // 创建包裹元素并设置样式
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.style.position = 'relative';
+        wrapperDiv.classList.add('h-full');
+        wrapperDiv.id = 'myWrapperDiv';
+
+        // 将图片元素包裹在新的div内
+        imgElement.parentNode.insertBefore(wrapperDiv, imgElement);
+        wrapperDiv.appendChild(imgElement);
+
+        // 现有热区的位置和尺寸（居中放置）
+        const existingHotspot = {
+          top: y, // 这些值应基于具体情况进行调整
+          left: x,
+          width: width,
+          height: height
+        };
+
+        // 创建四个热区覆盖图片的上、下、左、右部分
+        // 上
+            console.log(existingHotspot.top)
+        createHotspot(wrapperDiv, 0, 0, imgWidth, existingHotspot.top);
+        // 下
+        createHotspot(wrapperDiv, 0, existingHotspot.top + existingHotspot.height, imgWidth, imgHeight - (existingHotspot.top + existingHotspot.height));
+        // 左
+        createHotspot(wrapperDiv, 0, existingHotspot.top, existingHotspot.left, existingHotspot.height);
+        // 右
+        createHotspot(wrapperDiv, existingHotspot.left + existingHotspot.width, existingHotspot.top, imgWidth - (existingHotspot.left + existingHotspot.width), existingHotspot.height);
+      }
+    }
+
+    function createHotspot(wrapper, left, top, width, height) {
+      const hotspotDiv = document.createElement('div');
+      hotspotDiv.style.position = 'absolute';
+      hotspotDiv.style.left = `${left}px`;
+      hotspotDiv.style.top = `${top}px`;
+      hotspotDiv.style.width = `${width}px`;
+      hotspotDiv.style.height = `${height}px`;
+      hotspotDiv.style.backgroundColor = 'rgba(0,255,0,0.5)'; // 绿色表示新热区
+      hotspotDiv.style.cursor = 'pointer';
+
+      // 为热区绑定点击事件处理函数
+      hotspotDiv.addEventListener('click', function(e) {
+        console.log('热区被点击了！');
+        e.stopPropagation();
+      });
+
+      // 将热区添加到包裹元素中
+      wrapper.appendChild(hotspotDiv);
+    }
+</script>
+
+<script>
+    let startTouchX;
+
+    // 监听整个文档的触摸开始
+    document.addEventListener('touchstart', function(e) {
+        startTouchX = e.touches[0].pageX;
+    }, false);
+
+    // 监听整个文档的触摸结束
+    document.addEventListener('touchend', function(e) {
+        let endTouchX = e.changedTouches[0].pageX;
+        let touchDelta = endTouchX - startTouchX;
+
+        if (touchDelta > 50) {
+            // 右滑动作
+            console.log('右滑动作');
+            preObj();
+
+        } else if (touchDelta < -50) {
+            // 左滑动作
+            console.log('左滑动作');
+            nextObj();
+        }
+    }, false);
+</script>
 </body>
 </html>

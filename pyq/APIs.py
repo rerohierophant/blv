@@ -375,8 +375,7 @@ def getSortedObjects(img_url, objects, type, caption):
     client = OpenAI(
         api_key=api_key,
     )
-    #This type of image has the following key points {key_ele_dict[type]}.
-    prompt = f'''This is a "{type}" type image. The caption of the image is {caption}. 
+    prompt = f'''This is a "{type}" type image. The caption of the image is {caption}. This type of image has the following key points {key_ele_dict[type]}.
 You have identified the following objects in this image:
 {objects} Please refer to the number of key points that each object has (including the more important points, 
 the higher the importance of the object may be), and combine the accompanying text of the image to understand the key 

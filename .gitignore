@@ -1,3 +1,4 @@
 /.idea/
 /static/models/groundingdino_swint_ogc.pth
 /static/models/sam_vit_h_4b8939.pth
+/static/img/img2.jpg

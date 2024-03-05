@@ -15,8 +15,8 @@ from django.contrib.auth import login, logout
 from django.conf import settings
 import requests
 from .sam_get_embedding import get_embedding
-# from .sam_get_onnx import get_onnx
-# from .second_layer import explore
+from .second_layer import get_second_layer
+
 from .text2speech import text2speech
 
 from .models import Pyq
@@ -237,13 +237,19 @@ def second_layer_explore(request):
     sorted_object = img.sorted_objs
     sorted_object_arr = json.loads(sorted_object)
     cur_obj = sorted_object_arr[cur_id]
-    loc = getObjectLocation(img_url, cur_obj, pre_loc_info(cur_obj))
-    cur_obj_axis = explore_object(cur_obj, img_id)
+    print(cur_obj)
+    loc = getObjectLocation(img_url, cur_obj, pre_loc_info(cur_id))
+
+    cur_position = explore_object(cur_obj)
     audio_fp = f"{text2speech(loc)}"
-    return JsonResponse({'loc': loc, 'audio_fp': audio_fp, 'cur_obj_axis': cur_obj_axis})
+    return JsonResponse({'loc': loc, 'audio_fp': audio_fp, 'cur_position': cur_position})
 
 
 # TODO 根据图中对象描述获取对象的方法写在这里。输出为矩形框的坐标
-def explore_object(obj_name, img_id):
-    return ""
+def explore_object(obj_name):
+    cur_position = get_second_layer(obj_name)
+    return cur_position
 
+
+def test(request):
+    return render(request, 'img_index_test.html')
