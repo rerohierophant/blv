@@ -65,7 +65,7 @@ def get_second_layer(TEXT_PROMPT):
 
     # 使用 cv2.imwrite 保存图片
     cropped_img1_pil.save(filename)
-    return x,y,w,h
+    return x, y, w, h
 
 
 def generate_masks_with_grounding(image_source, boxes):

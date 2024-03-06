@@ -322,6 +322,9 @@
                 headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
                 success: function(response) {
                     console.log(response.data);
+                    const imgId = element.getAttribute('data-img-id');
+                    const pyqId = element.getAttribute('data-pyq-id');
+                    window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
                 },
                 error: function(xhr, status, error) {
                     console.error(error); // 打印错误信息

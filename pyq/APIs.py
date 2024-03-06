@@ -469,6 +469,8 @@ NOTE:
     return response
 
 
+# TODO
+# 蒙版描述部分的prompt
 def mask_explore():
     # Path to your image
     image_path_masked = "static/dist/assets/data/target_mask.jpg"

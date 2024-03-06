@@ -194,7 +194,7 @@ def img_embedding(request):
     img_url = data.get('img_url')
 
     get_embedding(img_url)
-    return JsonResponse({'data': '模型载入中'})
+    return JsonResponse({'data': '模型载入成功'})
 
 
 @csrf_exempt
