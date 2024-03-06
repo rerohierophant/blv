@@ -1,12 +1,15 @@
+import base64
 import os
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+
+from .layer_mask_merge import merge_images
 from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
-from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation
+from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation, mask_explore
 from django.urls import reverse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -253,3 +256,19 @@ def explore_object(obj_name):
 
 def test(request):
     return render(request, 'img_index_test.html')
+
+
+def b64_process(request):
+    data = json.loads(request.body.decode('utf-8'))
+    base64_text = data.get('imgBase64')
+    print(base64_text[2])
+    # 设置背景图片和输出图片的路径
+    background_path = 'static/dist/assets/data/target_layer.jpg'
+    output_path = 'static/dist/assets/data/target_mask.jpg'
+
+    # 调用merge_images函数处理图片
+    output_path = merge_images(base64_text, background_path, output_path)
+    mask_desc = mask_explore()
+
+    audio_fp_mask = text2speech(mask_desc)
+    return JsonResponse({'status': 'success', 'outputPath': output_path, 'mask_desc': mask_desc , 'audio_fp_mask': audio_fp_mask})

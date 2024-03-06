@@ -1,3 +1,4 @@
+import requests
 from openai import OpenAI
 import os
 import base64
@@ -137,7 +138,7 @@ def img_result(img_url, desc, p, settings):
     # print(type)
     # key_ele = getKeyEle(img_url, desc, caption, type)
     # print(key_ele)
-    img_des = getImgDescription(img_url, desc, caption, key_ele, settings)
+    img_des = getImgDescription(img_url, desc, caption, settings)
     return img_des
 
 
@@ -223,7 +224,7 @@ brief description of the corresponding'''
     return chat_completion.choices[0].message.content
 
 
-def getImgDescription(img_url, desc, caption, key_ele, settings):
+def getImgDescription(img_url, desc, caption, settings):
     client = OpenAI(
         api_key=api_key,
     )
@@ -466,6 +467,59 @@ NOTE:
     )
     response = chat_completion.choices[0].message.content
     return response
+
+
+def mask_explore():
+    # Path to your image
+    image_path_masked = "static/dist/assets/data/target_mask.jpg"
+    image_path_origin = "static/dist/assets/data/target_layer.jpg"
+
+    prompt = '''I will upload you two images that are almost identical, the only difference between them is the blue mask on the first image, while the second image is the original one. I need you to compare these two pictures and only describe what is covered by the blue mask in picture 1。" \
+             Note:
+             (1)Only the area covered by the mask will be described, nearby features and regions covered in green mask must be neglected.
+             (2)Do not describe the whole picture, describe local features instead.
+             (3)Do not describe regions wrapped by the blue mask, describe the blue region instead.
+             (4)Reply in Chinese.
+             '''
+    # Getting the base64 string
+    base64_image_masked = encode_image(image_path_masked)
+    base64_image_origin = encode_image(image_path_origin)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    payload = {
+        "model": "gpt-4-vision-preview",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image_masked}"
+                        }
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image_origin}"
+                        }
+                    },
+                ]
+            }
+        ],
+        "max_tokens": 300
+    }
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+    return response.json()['choices'][0]['message']['content']
 
 
 

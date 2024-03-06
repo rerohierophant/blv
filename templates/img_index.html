@@ -17,6 +17,7 @@
     <span id="obj_len">{{objects_len}}</span>
     <span id="cur_id">0</span>
     <audio style="display: none;" controls="controls" hidden id="audio" autoplay="true"  src="{{audio_fp}}">123</audio>
+
     <div id="root" class="w-full h-full">
 
     </div>
@@ -28,7 +29,7 @@
     </div>
 
 <script>
-
+    var x,y,width,height
     function playAudio() {
         audio = document.getElementById('audio')
         audio.play()
@@ -51,10 +52,10 @@
                 console.log(response.audio_fp);
                 console.log(response.cur_position)
                 updateAudio(response.audio_fp);
-                var x = response.cur_position[0]*0.9
-                var y = response.cur_position[1]*0.9
-                var width = response.cur_position[2]*0.9
-                var height = response.cur_position[3]*0.9
+                x = response.cur_position[0]*0.9
+                y = response.cur_position[1]*0.9
+                width = response.cur_position[2]*0.9
+                height = response.cur_position[3]*0.9
                 console.log(x)
                 loadMask(x,y,width,height)
             },
@@ -104,7 +105,6 @@
         // 定位到图片元素
         if(wrapperDiv){
             const imgElement = wrapperDiv.querySelector('img');
-
             if (wrapperDiv && imgElement) {
               // 将图片元素移回其原来的位置，即wrapperDiv的父元素
               wrapperDiv.parentNode.insertBefore(imgElement, wrapperDiv);
@@ -213,6 +213,8 @@
       // 将热区添加到包裹元素中
       wrapper.appendChild(hotspotDiv);
     }
+
+
 </script>
 
 <script>
@@ -239,6 +241,83 @@
             nextObj();
         }
     }, false);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // 创建一个新的MutationObserver对象，传入一个回调函数
+        const observer = new MutationObserver((mutations) => {
+            // 遍历所有的变动记录
+            mutations.forEach((mutation) => {
+                // 检查是否有新添加的节点
+                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                    // 遍历所有新添加的节点
+                    mutation.addedNodes.forEach((node) => {
+                        // 检查这个节点是否是一个img元素
+                        if (node.nodeName === 'IMG' && node.className === "h-full absolute opacity-40 pointer-events-none") {
+                            // 为这个img元素赋予一个唯一的id值
+                            const mask_base64 = node.src;
+                            node.id = `mask`;
+                            node.style.opacity = '0.8';
+                            var delayedSrc;
+                            setTimeout(() => {
+                                delayedSrc = node.src;
+                                // console.log(delayedSrc)
+                                // 创建一个Image对象来加载Base64图片
+                                var img = new Image();
+                                img.onload = function() {
+                                    // 创建canvas
+                                    var canvas = document.createElement('canvas');
+                                    var ctx = canvas.getContext('2d');
+
+                                    // 设置canvas大小为目标剪裁区域大小
+                                    canvas.width = width/0.9;
+                                    canvas.height = height/0.9;
+
+                                    // 绘制图片的特定部分到canvas
+                                    ctx.drawImage(img, x/0.9, y/0.9, width, height, 0, 0, width, height);
+
+                                    // 获取新的base64字符串
+                                    var croppedBase64 = canvas.toDataURL();
+                                    // console.log(croppedBase64);
+                                    base64_process(croppedBase64);
+                                };
+                                img.src = delayedSrc; // 触发图片加载
+                            }, 500); // 延迟时间可以根据实际情况调整
+
+
+                        }
+                    });
+                }
+            });
+        });
+
+        // 指定observer的配置选项：观察子节点的添加或者删除
+        const config = {childList: true, subtree: true};
+
+        // 使用observe方法启动观察者，监听document的body元素及其所有子元素的变动
+        observer.observe(document.body, config);
+
+        // 当不再需要观察变动时，你可以调用disconnect方法停止观察
+        // observer.disconnect();
+    })
+function base64_process(croppedBase64) {
+    $.ajax({
+        type: "POST",
+        url: "/b64/",
+        data: JSON.stringify({ imgBase64: croppedBase64 }),
+        contentType: 'application/json',
+        success: function(response) {
+            // 请求成功后的回调函数
+            console.log(response.mask_desc);
+            updateAudio(response.audio_fp_mask);
+        },
+        error: function(error) {
+            // 请求失败的回调函数
+            console.log("Error sending image:", error);
+        }
+    });
+}
 </script>
 </body>
 </html>

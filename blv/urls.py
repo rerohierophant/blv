@@ -35,5 +35,7 @@ urlpatterns = [
     path('save_image/', views.save_image),
     path('second_layer_explore/', views.second_layer_explore),
 
-    path('test/', views.test)
+    path('test/', views.test),
+
+    path('b64/', views.b64_process),
 ]
