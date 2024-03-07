@@ -3,7 +3,8 @@ import os
 import base64
 import json
 from .models import Img
-
+import time
+start_time = time.time()
 api_key = "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"
 max_tokens = 800
 # os.environ["http_proxy"] = "http://localhost:33210"
@@ -135,7 +136,7 @@ def img_result(img_url, desc, p, settings):
     # print(type)
     # key_ele = getKeyEle(img_url, desc, caption, type)
     # print(key_ele)
-    img_des = getImgDescription(img_url, desc, caption, key_ele, settings)
+    img_des = getImgDescription(img_url, desc, caption, settings)
     return img_des
 
 
@@ -221,11 +222,11 @@ brief description of the corresponding'''
     return chat_completion.choices[0].message.content
 
 
-def getImgDescription(img_url, desc, caption, key_ele, settings):
+def getImgDescription(img_url, desc, caption, settings):
     client = OpenAI(
         api_key=api_key,
     )
-    prompt = f'''Please follow the instructions below.
+    prompt = f'''Please follow the instructions below and only tell me the result of step3.
 Step1:  identity image type.
 There are many types of pictures on social media, including goodies sharing, expression of 
 emotions or opinions, activities and experiences, personal portraits, interpersonal relations and artistic creations. 
@@ -313,10 +314,13 @@ Instructions:
         ],
         max_tokens=max_tokens,
         model="gpt-4-vision-preview",
+        stream=True,
         temperature=int(settings['Confidence'])
 
     )
-    return chat_completion.choices[0].message.content
+
+    # return chat_completion.choices[0].message.content
+    return chat_completion
 
 
 def getSecondLayerDes(img_url, type, caption, img, pre_des_text):

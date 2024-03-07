@@ -128,7 +128,7 @@
                 body: JSON.stringify({ 'des_style': des_style, 'aesthetic': aesthetic, 'emotion': emotion, 'confidence': confidence }),
             }).then(response => response.json())
                   .then(data => {
-                   
+                    window.location.href = `/`;
                   })
          
         }

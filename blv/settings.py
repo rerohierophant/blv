@@ -74,26 +74,29 @@ WSGI_APPLICATION = "blv.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": 'uist24',
+#         "USER": 'root',
+#         "PASSWORD": 'root',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3307',
+#     }
+# }
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": 'uist24',
         "USER": 'root',
-        "PASSWORD": 'root',
+        "PASSWORD": '123456',
         'HOST': '127.0.0.1',
-        'PORT': '3307',  # 我自己电脑上改了个端口号，下面那个是你的
+        'PORT': '3306',  # 我自己电脑上改了个端口号，下面那个是你的
     }
 }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": 'uist24',
-#         "USER": '123456',
-#         "PASSWORD": 'root',
-#         'HOST': '127.0.0.1',
-#         'PORT': '3306',
-#     }
-# }
+
 
 
 # Password validation

@@ -9,13 +9,58 @@
     <script type='text/javascript' src="{% static 'js/jquery.min.js' %}"></script>
 </head>
 <body>
+    <div class="header">
+        <div class="header-top">
+            <div class="header-left">
+                <span class="header-left-item1"></span>
+                <span class="header-left-item2"></span>
+                <span class="header-left-item3"></span>
+            </div>
+            <div class="header-right">
+                <img class="header-right-item1" width="32px" src="{% static 'img/pyq/refresh.svg' %}" alt="">
+                <img class="header-right-item2" width="34px" src="{% static 'img/pyq/alarm.svg' %}" alt="">
+                <img class="header-right-item3" width="32px" src="{% static 'img/pyq/photo.svg' %}" alt="">
+            </div>
+        </div>
+        <div class="user-info">
+            <div class="name">
+                用户1
+            </div>
+            <div class="header-avatar">
+                <img width="90px" src="{% static 'img/pyq/avatar1.jpg' %}" alt="">
+            </div>
+        </div>
+    </div>
     {% for pyq in pyqs %}
-    <div class="post" onclick="location.href='{% url 'pyq_index' pyq.pyq_id %}';">
-        <div class="post-header">
+    <div class="post" id="post-{{forloop.counter}}" onclick="location.href='{% url 'pyq_index' pyq.pyq_id %}';">
+        <div class="post-left">
+            <div class="post-avatar">
+                <img class="avatar" src="{{ pyq.poster_avatar }}" alt="头像">
+            </div>
+        </div>
+        <div class="post-right">
+            <div class="post-body">
+                <div class="post-user">
+                    <span class="username">{{ pyq.poster }}</span>
+                </div>
+                <div class="post-content">{{ pyq.content }}</div>
+                <div class="post-image">
+                    {% for img in pyq.img_set.all %}
+                    <img src="{{ img.img_url }}" alt="内容图片" >
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="post-extra-info">
+                <div class="post-location">{{ pyq.location }}</div>
+                <div class="post-time">{{ pyq.time }}</div>
+
+            </div>
+
+        </div>
+        <!-- <div class="post-header">
             <img class="avatar" src="{{ pyq.poster_avatar }}" alt="头像">
             <div class="post-user-details">
                 <span class="username">{{ pyq.poster }}</span>
-                <span class="post-time">{{ pyq.time }}</span>
             </div>
         </div>
 
@@ -26,7 +71,10 @@
                 <img src="{{ img.img_url }}" alt="内容图片" >
                 {% endfor %}
             </div>
-        </div>
+            <div class="post-user-details">
+                <span class="post-time">{{ pyq.time }}</span>
+            </div>
+        </div> -->
     </div>
     {% endfor %}
 

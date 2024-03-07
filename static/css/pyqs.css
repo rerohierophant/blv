@@ -2,7 +2,7 @@ body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #f0f2f5;
     max-width: 960px; /* 可以根据需要调整 */
-    width: 50%; /* 占屏幕的三分之二 */
+    width: 70%; /* 占屏幕的三分之二 */
     margin: auto;
 }
 
@@ -14,9 +14,13 @@ body {
 
 .post {
     background-color: white;
-    margin: 15px;
-    border-radius: 10px;
+    margin: 0 15px;
+    padding: 15px;
+    /* border-radius: 10px; */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: 70px auto;
+    
 }
 
 .post-header {
@@ -26,21 +30,16 @@ body {
 }
 
 .avatar {
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    margin-right: 15px;
 }
 
-.post-user-details {
-    display: flex;
-    flex-direction: column;
-}
+
 
 .username {
     font-size: 1.1em;
-    font-weight: bold;
-    color: #333;
+    color: rgb(87, 107, 149);
 }
 
 .post-time {
@@ -49,26 +48,97 @@ body {
 }
 
 .post-body {
-    padding: 0 15px;
+    /* padding: 0 15px; */
+    /* margin-left: 70px; */
 }
 
 .post-content {
-    margin-bottom: 8px;
     line-height: 1.5;
     color: #333;
+    margin: 10px 0;
 }
 
 .post-image {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
+    grid-template-columns: repeat(3, 33%);
+    display: grid;
+
 }
 
 .post-image img {
-    width: 150px;
-    height: 150px;
+    width: 95%;
+    aspect-ratio: 1/1;
     margin-right: 8px;
     object-fit: cover; /* 保持长宽比，完全覆盖容器 */
 }
 
+
+.post-time, .post-location {
+    margin-top: 10px;
+}
+.post-location {
+    color: rgb(87, 107, 149)
+}
+.header {
+    height: 350px;
+    background-color: gray;
+    margin: 0 15px;
+    position: relative;
+}
+#post-1 {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.name {
+    color: white;
+    margin-right: 20px;
+    margin-top: 16px;
+    font-size: 22px;
+}
+.user-info {
+    position: absolute;
+    right: 48px;
+    bottom: -28px;
+    display: flex;
+}
+.header-top {
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+}
+.header-left-item1 {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    border-radius: 100%;
+    background-color: rgb(234, 108, 90);
+}
+
+.header-left-item2 {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    border-radius: 100%;
+    background-color: rgb(243, 190, 81);
+}
+
+.header-left-item3 {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    border-radius: 100%;
+    background-color: rgb(99, 196, 82);
+}
+.header-right-item1 {
+    margin-right: 28px;
+}
+
+.header-right-item2 {
+    margin-right: 28px;
+}
+.header-right {
+    display: flex;
+}

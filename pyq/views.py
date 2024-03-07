@@ -8,7 +8,7 @@ from .models import UserProfile
 from django.shortcuts import render, get_object_or_404
 from .APIs import img_result, pyq_result, free_query_pyq, free_query_img, getSecondLayerDes, getObjectLocation
 
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import login, logout
@@ -50,9 +50,6 @@ def pre_loc_info(obj_id):
 def img_detail(request, pyq_id, img_id):
     pyq = get_object_or_404(Pyq, pyq_id=pyq_id)
     img = get_object_or_404(Img, img_id=img_id, pyq=pyq)
-    # data = json.loads(request.body.decode('utf-8'))
-    # img_id = data.get("img_id")
-    # pyq_id = data.get("pyq_id")
     caption = pyq.content
     type = img.type
     img_url = img.img_url
@@ -60,9 +57,8 @@ def img_detail(request, pyq_id, img_id):
     loc = payload["loc"]
     objects_len = payload["objects_len"]
     audio_fp = f"{text2speech(loc)}"
-    # return JsonResponse({'data': loc, 'audio_fp': audio_fp, ' ': objects_len})
+
     return render(request, 'index.html', {'data': loc, 'audio_fp': audio_fp, 'objects_len': objects_len})
-    # return render(request, 'index.html', {'img': img, 'pyq': pyq})
 
 
 @login_required
@@ -71,11 +67,8 @@ def get_result_all(request):
     p_id = data.get('id')
     p = Pyq.objects.get(pk=p_id)
     img_urls = list(p.img_set.all().values_list('img_url', flat=True))
-
     order = "请描述这条朋友圈讲述了什么"
-
     desc = data.get('desc')
-
     res = pyq_result(order, img_urls, desc)
     audio_fp = text2speech(res)
     return JsonResponse({'data': res, 'audio_fp': audio_fp})
@@ -95,9 +88,11 @@ def get_result_img(request):
         'emotional': user_profile.emotional,
         'Confidence': user_profile.Confidence,
     }
-    res = img_result(img_url, desc, p, settings)
-    audio_fp = text2speech(res)
-    return JsonResponse({'data': res, 'audio_fp': audio_fp})
+    chat_response = img_result(img_url, desc, p, settings)
+
+    r = StreamingHttpResponse(streaming_content=get_streaming_content(chat_response), content_type='text/event-stream')
+    r['Cache-Control'] = 'no-cache'
+    return r
 
 
 def login_view(request):
@@ -186,7 +181,6 @@ def get_img_chat(request):
     return JsonResponse({'data': res})
 
 
-
 def test(request):
     return render(request, 'index.html')
 
@@ -252,3 +246,21 @@ def second_layer_explore(request):
 def explore_object(obj_name, img_id):
     return ""
 
+
+def get_streaming_content(chat_response):
+    token_buffer = []  # 用于暂存tokens的列表
+    punctuation = ".!?。！？：:;；~"
+    for chunk in chat_response:
+        if chunk.choices[0].delta.content is not None:
+            # 将当前chunk的tokens分割后添加到暂存列表
+            chunk_tokens = chunk.choices[0].delta.content
+            token_buffer.extend(chunk_tokens)
+            if chunk_tokens in punctuation:
+                yield_tokens = token_buffer
+                token_buffer = []
+                fp = text2speech(''.join(yield_tokens))
+                yield fp
+    # 如果循环结束后暂存列表中还有tokens，也将它们yield出去
+    if token_buffer:
+        fp = text2speech(''.join(token_buffer))
+        yield fp
