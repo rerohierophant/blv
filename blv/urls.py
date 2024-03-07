@@ -27,14 +27,15 @@ urlpatterns = [
     path('get_result_img/', views.get_result_img),
     path('get_free_chat/', views.get_free_chat),
     path('get_img_chat/', views.get_img_chat),
-    path('pyqs/<int:pyq_id>/', views.pyq_detail, name='pyq_index'),
 
-    path('test/', views.test),
+    path('pyqs/<int:pyq_id>/', views.pyq_detail, name='pyq_index'),
     path('pyqs/<int:pyq_id>/image/<int:img_id>/', views.img_detail, name='img_detail'),
 
     path('get_img_embedding/', views.img_embedding),
     path('save_image/', views.save_image),
-    path('second_layer_explore/', views.second_layer_explore)
+    path('second_layer_explore/', views.second_layer_explore),
 
-    # path('path-to-delete-file/', views.delete_specific_file),
+    path('test/', views.test),
+
+    path('b64/', views.b64_process),
 ]

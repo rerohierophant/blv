@@ -1,0 +1,85 @@
+{% load static %}
+<!doctype html>
+<html lang="en" dir="ltr" prefix="og: https://ogp.me/ns#" class="w-full h-full">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/>
+    <title>Segment Anything Demo</title>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Segment Anything Demo"/>
+    <script defer="defer" src="{% static 'dist/js/bundle.b9eaac288d2f74c5fb33.min.js' %}"></script>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/explore.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+</head>
+<body class="w-full h-full">
+    <span id="obj_len">{{objects_len}}</span>
+    <span id="cur_id">0</span>
+    <audio style="display: none;" controls="controls" hidden id="audio" autoplay="true"  src="{{audio_fp}}">123</audio>
+    <div id="root" class="w-full h-full">
+
+    </div>
+
+    <script>
+window.onload = function() {
+  // 定位到页面中的图片元素
+  const imgElement = document.querySelector('img[src="http://127.0.0.1:8000/static/dist/assets/data/target.jpg"]');
+
+  if (imgElement) {
+    // 获取图片的宽度和高度
+    const imgWidth = imgElement.offsetWidth;
+    const imgHeight = imgElement.offsetHeight;
+
+    // 创建包裹元素并设置样式
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.style.position = 'relative';
+    wrapperDiv.classList.add('h-full');
+
+    // 将图片元素包裹在新的div内
+    imgElement.parentNode.insertBefore(wrapperDiv, imgElement);
+    wrapperDiv.appendChild(imgElement);
+
+    // 现有热区的位置和尺寸（居中放置）
+    const existingHotspot = {
+      top: 50, // 这些值应基于具体情况进行调整
+      left: 50,
+      width: 100,
+      height: 100
+    };
+
+    // 创建四个热区覆盖图片的上、下、左、右部分
+    // 上
+    createHotspot(wrapperDiv, 0, 0, imgWidth, existingHotspot.top);
+    // 下
+    createHotspot(wrapperDiv, 0, existingHotspot.top + existingHotspot.height, imgWidth, imgHeight - (existingHotspot.top + existingHotspot.height));
+    // 左
+    createHotspot(wrapperDiv, 0, existingHotspot.top, existingHotspot.left, existingHotspot.height);
+    // 右
+    createHotspot(wrapperDiv, existingHotspot.left + existingHotspot.width, existingHotspot.top, imgWidth - (existingHotspot.left + existingHotspot.width), existingHotspot.height);
+  }
+};
+
+function createHotspot(wrapper, left, top, width, height) {
+  const hotspotDiv = document.createElement('div');
+  hotspotDiv.style.position = 'absolute';
+  hotspotDiv.style.left = `${left}px`;
+  hotspotDiv.style.top = `${top}px`;
+  hotspotDiv.style.width = `${width}px`;
+  hotspotDiv.style.height = `${height}px`;
+  hotspotDiv.style.backgroundColor = 'rgba(0,255,0,0.5)'; // 绿色表示新热区
+  hotspotDiv.style.cursor = 'pointer';
+
+  // 为热区绑定点击事件处理函数
+  hotspotDiv.addEventListener('click', function(e) {
+    alert('热区被点击了！');
+    e.stopPropagation();
+  });
+
+  // 将热区添加到包裹元素中
+  wrapper.appendChild(hotspotDiv);
+}
+
+    </script>
+</body>
+</html>

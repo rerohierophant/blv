@@ -1,3 +1,4 @@
+import requests
 from openai import OpenAI
 import os
 import base64
@@ -5,6 +6,9 @@ import json
 from .models import Img
 import time
 start_time = time.time()
+from django.http import HttpResponse
+
+
 api_key = "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"
 max_tokens = 800
 # os.environ["http_proxy"] = "http://localhost:33210"
@@ -377,8 +381,7 @@ def getSortedObjects(img_url, objects, type, caption):
     client = OpenAI(
         api_key=api_key,
     )
-    prompt = f'''This is a "{type}" type image. The caption of the image is {caption}. This type of image has the following key points
-{key_ele_dict[type]}. 
+    prompt = f'''This is a "{type}" type image. The caption of the image is {caption}. This type of image has the following key points {key_ele_dict[type]}.
 You have identified the following objects in this image:
 {objects} Please refer to the number of key points that each object has (including the more important points, 
 the higher the importance of the object may be), and combine the accompanying text of the image to understand the key 
@@ -470,6 +473,65 @@ NOTE:
     response = chat_completion.choices[0].message.content
     return response
 
+
+# TODO
+# 蒙版描述部分的prompt
+def mask_explore():
+    # Path to your image
+    image_path_masked = "static/dist/assets/data/target_mask.jpg"
+    image_path_origin = "static/dist/assets/data/target_layer.jpg"
+
+    prompt = '''I will upload you two images that are almost identical, the only difference between them is the blue 
+    mask on the first image, while the second image is the original one. I need you to compare these two pictures and 
+    only describe what is covered by the blue mask in picture 1。" 
+    Note: 
+    (1)Only the area covered by the mask will be described, nearby features and regions covered in green mask must be 
+    neglected. 
+    (2)Do not describe the whole picture, describe local features instead. 
+    (3)Do not describe regions wrapped by the blue mask, always describe the blue region instead. 
+    (4)It's inevitable to offend others' privacy or information security. When encountering these issues, describe 
+    concerned information in general instead, and always avoid such answers as "对不起，我无法为您描述".
+    (5)Reply in Chinese. '''
+
+    # Getting the base64 string
+    base64_image_masked = encode_image(image_path_masked)
+    base64_image_origin = encode_image(image_path_origin)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    payload = {
+        "model": "gpt-4-vision-preview",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image_masked}"
+                        }
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image_origin}"
+                        }
+                    },
+                ]
+            }
+        ],
+        "max_tokens": 300
+    }
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+    return response.json()['choices'][0]['message']['content']
 
 
 # Function to encode the image

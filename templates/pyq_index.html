@@ -275,6 +275,7 @@
 
         let getAllImages = document.getElementsByTagName('img')
         var tapCount = 0;
+        var pyq_content = "{{ pyq.content }}"
         $(document).ready(function() {
             for (var i = 0; i < getAllImages.length; i++) {
                 (function(x) {
@@ -304,9 +305,9 @@
 
                             } else if (tapCount >= 3) {
                                 console.log("三击");
-                                saveEmbedding(img_src);
+                                //saveEmbedding(img_src);
                                 const imgId = element.getAttribute('data-img-id'); // 获取图片ID
-                                saveImage(imgId, img_src); // 调用保存图片的函数
+                                //saveImage(imgId, img_src); // 调用保存图片的函数
                                 const pyqId = element.getAttribute('data-pyq-id');
                                 window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
                             }
@@ -427,6 +428,9 @@
                 headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
                 success: function(response) {
                     console.log(response.data);
+                    const imgId = element.getAttribute('data-img-id');
+                    const pyqId = element.getAttribute('data-pyq-id');
+                    window.location.href = `/pyqs/${pyqId}/image/${imgId}`;
                 },
                 error: function(xhr, status, error) {
                     console.error(error); // 打印错误信息
@@ -469,10 +473,8 @@
                 }
             });
         }
-
     </script>
 
-{#    <script src="{% static 'js/like_comment.js' %}"></script>#}
     <script src="{% static 'js/read_res.js' %}"></script>
 
 

@@ -1,0 +1,408 @@
+{% load static %}
+<!doctype html>
+<html lang="en" dir="ltr" prefix="og: https://ogp.me/ns#" class="w-full h-full">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/>
+    <title>Segment Anything Demo</title>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Segment Anything Demo"/>
+    <script defer="defer" src="{% static 'dist/js/bundle.b9eaac288d2f74c5fb33.min.js' %}"></script>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/explore.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+</head>
+<body class="w-full h-full">
+    <span id="obj_len">{{objects_len}}</span>
+    <span id="cur_id">0</span>
+    <audio style="display: none;" controls="controls" hidden id="audio"   src="{{audio_fp}}">123</audio>
+
+    <div id="root" class="w-full h-full" style="visibility: hidden">
+
+    </div>
+{#    <div onclick="nextObj()" id="third-btn">#}
+{#        <span>下一个</span>#}
+{#    </div>#}
+{#    <div onclick="preObj()" id="second-btn">#}
+{#        <span>上一个</span>#}
+{#    </div>#}
+
+<script>
+
+    var x,y,width,height
+    window.onload = function (){
+        $.ajax({
+            url: "/second_layer_explore/",
+            type: "POST",
+            data: JSON.stringify({ img_id: getImgId(), pyq_id: getPyqId(), cur_id: getCurObjId() }),
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+            success: function(response) {
+                console.log(response.audio_fp);
+                console.log(response.cur_position)
+                updateAudio(response.audio_fp);
+                x = response.cur_position[0]*0.9
+                y = response.cur_position[1]*0.9
+                width = response.cur_position[2]*0.9
+                height = response.cur_position[3]*0.9
+                console.log(height)
+                loadMask(x,y,width,height)
+                var root_dir = document.getElementById('root');
+                root_dir.style.visibility = 'visible';
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+
+    }
+
+    function playAudio() {
+        audio = document.getElementById('audio')
+        audio.play()
+    }
+
+    function updateAudio(audio_src) {
+        audio = document.getElementById('audio')
+        audio.src = audio_src
+        audio.play()
+    }
+
+    function second_layer_explore(){
+        $.ajax({
+            url: "/second_layer_explore/",
+            type: "POST",
+            data: JSON.stringify({ img_id: getImgId(), pyq_id: getPyqId(), cur_id: getCurObjId() }),
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }, // 获取CSRF token
+            success: function(response) {
+                console.log(response.audio_fp);
+                console.log(response.cur_position)
+                updateAudio(response.audio_fp);
+                x = response.cur_position[0]*0.9
+                y = response.cur_position[1]*0.9
+                width = response.cur_position[2]*0.9
+                height = response.cur_position[3]*0.9
+                console.log(x)
+                loadMask(x,y,width,height)
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function getPyqId() {
+        return window.location.href.split('pyqs/')[1].split('/')[0]
+    }
+    function getImgId() {
+        return window.location.href.split('image/')[1].split('/')[0]
+    }
+
+    function getObjLen() {
+        let e = document.getElementById('obj_len')
+        return Number(e.innerText);
+    }
+
+    function getCurObjId() {
+        let e = document.getElementById('cur_id')
+        return Number(e.innerText);
+    }
+
+    function nextObj() {
+        let cur_obj_id_ele = document.getElementById('cur_id')
+        let max_obj_id = getObjLen()
+        let cur_obj_id = getCurObjId()
+
+        const wrapperDiv = document.querySelector('#myWrapperDiv');
+        // 定位到图片元素
+        if(wrapperDiv){
+            const imgElement = wrapperDiv.querySelector('img');
+            if (wrapperDiv && imgElement) {
+              // 将图片元素移回其原来的位置，即wrapperDiv的父元素
+              wrapperDiv.parentNode.insertBefore(imgElement, wrapperDiv);
+              // 删除'h-full'类的div元素
+              wrapperDiv.parentNode.removeChild(wrapperDiv);
+            }
+        }
+
+        if (cur_obj_id === max_obj_id) {
+            isLastObj();
+            return;
+        } else {
+            cur_obj_id_ele.innerHTML = `${cur_obj_id + 1}`
+            second_layer_explore()
+        }
+    }
+    function preObj() {
+        let cur_obj_id_ele = document.getElementById('cur_id')
+        let cur_obj_id = getCurObjId()
+
+        const wrapperDiv = document.querySelector('#myWrapperDiv');
+        // 定位到图片元素
+        if(wrapperDiv){
+            const imgElement = wrapperDiv.querySelector('img');
+
+            if (wrapperDiv && imgElement) {
+              // 将图片元素移回其原来的位置，即wrapperDiv的父元素
+              wrapperDiv.parentNode.insertBefore(imgElement, wrapperDiv);
+              // 删除'h-full'类的div元素
+              wrapperDiv.parentNode.removeChild(wrapperDiv);
+            }
+        }
+        if (cur_obj_id === 0) {
+            isFirstObj();
+            return;
+        } else {
+            cur_obj_id_ele.innerHTML = `${cur_obj_id - 1}`
+            second_layer_explore()
+        }
+    }
+    function isLastObj() {
+        console.log('最后一个对象');
+    }
+    function isFirstObj() {
+        console.log('第一个对象');
+    }
+
+</script>
+
+<script>
+    function loadMask(x,y,width,height) {
+        console.log(height);
+        // 定位到页面中的图片元素
+        const imgElement = document.querySelector('img.h-full');
+        if (imgElement) {
+            //在页面上显示的尺寸
+            const imgWidth = imgElement.offsetWidth;
+            const imgHeight = imgElement.offsetHeight;
+            console.log('imgwidth:' + imgWidth)
+
+
+            // 创建一个新的Image对象来获取图片的原始尺寸
+            var originalImage = new Image();
+            originalImage.onload = function() {
+                var originalWidth = this.naturalWidth;
+                var originalHeight = this.naturalHeight;
+                console.log('Original Width:', originalWidth, 'Original Height:', originalHeight);
+                var rate = imgWidth/originalWidth;
+
+                // 创建包裹元素并设置样式
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.style.position = 'relative';
+                wrapperDiv.classList.add('h-full');
+                wrapperDiv.id = 'myWrapperDiv';
+
+                // 将图片元素包裹在新的div内
+                imgElement.parentNode.insertBefore(wrapperDiv, imgElement);
+                wrapperDiv.appendChild(imgElement);
+                console.log('rate:' + rate);
+                // 现有热区的位置和尺寸（居中放置）
+                const existingHotspot = {
+                  top: y*rate, // 这些值应基于具体情况进行调整
+                  left: x*rate,
+                  width: width*rate,
+                  height: height*rate,
+                };
+
+                // 创建四个热区覆盖图片的上、下、左、右部分
+                // 上
+                console.log(existingHotspot.height)
+                createHotspot(wrapperDiv, 0, 0, imgWidth, existingHotspot.top);
+                // 下
+                createHotspot(wrapperDiv, 0, existingHotspot.top + existingHotspot.height, imgWidth, imgHeight - (existingHotspot.top + existingHotspot.height));
+                // 左
+                createHotspot(wrapperDiv, 0, existingHotspot.top, existingHotspot.left, existingHotspot.height);
+                // 右
+                createHotspot(wrapperDiv, existingHotspot.left + existingHotspot.width, existingHotspot.top, imgWidth - (existingHotspot.left + existingHotspot.width), existingHotspot.height);
+            };
+            originalImage.src = imgElement.src;
+
+        }
+    }
+
+    function createHotspot(wrapper, left, top, width, height) {
+      const hotspotDiv = document.createElement('div');
+      hotspotDiv.style.position = 'absolute';
+      hotspotDiv.style.left = `${left}px`;
+      hotspotDiv.style.top = `${top}px`;
+      hotspotDiv.style.width = `${width}px`;
+      hotspotDiv.style.height = `${height}px`;
+      hotspotDiv.style.backgroundColor = 'rgba(0,255,0,0.5)'; // 绿色表示新热区
+      hotspotDiv.style.cursor = 'pointer';
+
+      // 为热区绑定点击事件处理函数
+      hotspotDiv.addEventListener('click', function(e) {
+        console.log('热区被点击了！');
+        e.stopPropagation();
+      });
+
+      // 将热区添加到包裹元素中
+      wrapper.appendChild(hotspotDiv);
+    }
+
+
+</script>
+
+<script>
+    let startTouchX;
+
+    // 监听整个文档的触摸开始
+    document.addEventListener('touchstart', function(e) {
+        startTouchX = e.touches[0].pageX;
+    }, false);
+
+    // 监听整个文档的触摸结束
+    document.addEventListener('touchend', function(e) {
+        let endTouchX = e.changedTouches[0].pageX;
+        let touchDelta = endTouchX - startTouchX;
+
+        if (touchDelta > 50) {
+            // 右滑动作
+            console.log('右滑动作');
+            preObj();
+
+        } else if (touchDelta < -50) {
+            // 左滑动作
+            console.log('左滑动作');
+            nextObj();
+        }
+    }, false);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // 创建一个新的MutationObserver对象，传入一个回调函数
+        const observer = new MutationObserver((mutations) => {
+            // 遍历所有的变动记录
+            mutations.forEach((mutation) => {
+                // 检查是否有新添加的节点
+                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                    // 遍历所有新添加的节点
+                    mutation.addedNodes.forEach((node) => {
+                        // 检查这个节点是否是一个img元素
+                        if (node.nodeName === 'IMG' && node.className === "h-full absolute opacity-40 pointer-events-none") {
+                            // 为这个img元素赋予一个唯一的id值
+                            const mask_base64 = node.src;
+                            node.id = `mask`;
+                            node.style.opacity = '0.8';
+                            var delayedSrc;
+                            setTimeout(() => {
+                                delayedSrc = node.src;
+                                console.log("mask请求已发送")
+                                // 创建一个Image对象来加载Base64图片
+                                var img = new Image();
+                                img.onload = function() {
+                                    // 创建canvas
+                                    var canvas = document.createElement('canvas');
+                                    var ctx = canvas.getContext('2d');
+
+                                    // 设置canvas大小为目标剪裁区域大小
+                                    canvas.width = width/0.9;
+                                    canvas.height = height/0.9;
+
+                                    // 绘制图片的特定部分到canvas
+                                    ctx.drawImage(img, x/0.9, y/0.9, width, height, 0, 0, width, height);
+
+                                    // 获取新的base64字符串
+                                    var croppedBase64 = canvas.toDataURL();
+                                    // console.log(croppedBase64);
+                                    base64_process(croppedBase64);
+                                };
+                                img.src = delayedSrc; // 触发图片加载
+                            }, 500); // 延迟时间可以根据实际情况调整
+
+
+                        }
+                    });
+                }
+
+                var srcChangeTimeout;
+                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                    const node = mutation.target;
+                    if (node.nodeName === 'IMG' && node.className === "h-full absolute opacity-40 pointer-events-none") {
+                        // 如果已经存在一个延时处理，先清除它
+                        if (srcChangeTimeout) {
+                            clearTimeout(srcChangeTimeout);
+                        }
+
+                        // 启动一个新的延时处理
+                        srcChangeTimeout = setTimeout(() => {
+                            // 延时结束后，处理新的src
+                            console.log("mask请求已发送")
+                            const newSrc = node.src;
+                            var img = new Image();
+                            img.onload = function () {
+                                // 创建canvas
+                                var canvas = document.createElement('canvas');
+                                var ctx = canvas.getContext('2d');
+
+                                // 设置canvas大小为目标剪裁区域大小
+                                canvas.width = width / 0.9;
+                                canvas.height = height / 0.9;
+
+                                // 绘制图片的特定部分到canvas
+                                ctx.drawImage(img, x / 0.9, y / 0.9, width, height, 0, 0, width, height);
+
+                                // 获取新的base64字符串
+                                var croppedBase64 = canvas.toDataURL();
+                                // console.log(croppedBase64);
+                                base64_process(croppedBase64);
+                            };
+                            img.src = newSrc; // 触发图片加载
+                        }, 500); // 延时时间可以根据需要调整
+                    }
+                }
+
+            });
+        });
+
+        // 指定observer的配置选项：观察子节点的添加或者删除
+        const config = {
+            childList: true,
+            subtree: true,
+            attributes: true, // 监听属性变化
+            attributeFilter: ['src'] // 限制只监听src属性的变化
+        };
+
+        // 使用observe方法启动观察者，监听document的body元素及其所有子元素的变动
+        observer.observe(document.body, config);
+
+        // 当不再需要观察变动时，你可以调用disconnect方法停止观察
+        // observer.disconnect();
+    })
+function base64_process(croppedBase64) {
+    $.ajax({
+        type: "POST",
+        url: "/b64/",
+        data: JSON.stringify({ imgBase64: croppedBase64 }),
+        contentType: 'application/json',
+        success: function(response) {
+            // 请求成功后的回调函数
+            console.log(response.mask_desc);
+            updateAudio(response.audio_fp_mask);
+        },
+        error: function(error) {
+            // 请求失败的回调函数
+            console.log("Error sending image:", error);
+        }
+    });
+}
+</script>
+</body>
+</html>
