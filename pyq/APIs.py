@@ -9,7 +9,7 @@ start_time = time.time()
 from django.http import HttpResponse
 
 
-api_key = "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"
+api_key = "your_api_key"
 max_tokens = 800
 # os.environ["http_proxy"] = "http://localhost:33210"
 # os.environ["https_proxy"] = "http://localhost:33210"
